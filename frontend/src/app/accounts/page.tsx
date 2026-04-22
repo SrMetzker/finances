@@ -31,7 +31,7 @@ export default function AccountsPage() {
           </li>
         ))}
       </ul>
-      <FloatingActionButton href="/accounts" />
+      <FloatingActionButton href="/accounts/new" />
     </PageShell>
   );
 }

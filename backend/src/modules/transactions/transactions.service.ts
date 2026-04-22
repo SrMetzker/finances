@@ -32,8 +32,15 @@ export class TransactionsService {
   }
 
   async update(workspaceId: string, id: string, dto: UpdateTransactionDto) {
-    if (dto.type) {
-      this.validateTransfer(dto.type, dto.accountId ?? '', dto.destinationAccountId);
+    if (dto.type === 'TRANSFERENCIA') {
+      if (!dto.accountId) {
+        throw new BadRequestException(
+          'accountId é obrigatório ao alterar o tipo para TRANSFERENCIA.',
+        );
+      }
+      this.validateTransfer(dto.type, dto.accountId, dto.destinationAccountId);
+    } else if (dto.type) {
+      // ENTRADA or SAIDA — no transfer-specific validation needed
     }
     const result = await this.repo.update(workspaceId, id, {
       ...dto,

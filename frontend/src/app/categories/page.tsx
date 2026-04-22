@@ -32,7 +32,7 @@ export default function CategoriesPage() {
           </li>
         ))}
       </ul>
-      <FloatingActionButton href="/categories" />
+      <FloatingActionButton href="/categories/new" />
     </PageShell>
   );
 }

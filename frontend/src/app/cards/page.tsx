@@ -31,7 +31,7 @@ export default function CardsPage() {
           </li>
         ))}
       </ul>
-      <FloatingActionButton href="/cards" />
+      <FloatingActionButton href="/cards/new" />
     </PageShell>
   );
 }
