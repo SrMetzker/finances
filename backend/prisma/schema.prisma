@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum CategoryType {
+  ENTRADA
+  SAIDA
+  TRANSFERENCIA
+}
+
+enum TransactionType {
+  ENTRADA
+  SAIDA
+  TRANSFERENCIA
+}
+
+model User {
+  id           String            @id @default(cuid())
+  name         String
+  email        String            @unique
+  password     String
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  memberships  WorkspaceMember[]
+  transactions Transaction[]
+}
+
+model Workspace {
+  id           String            @id @default(cuid())
+  name         String
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  members      WorkspaceMember[]
+  accounts     Account[]
+  cards        Card[]
+  categories   Category[]
+  transactions Transaction[]
+}
+
+model WorkspaceMember {
+  id          String    @id @default(cuid())
+  userId      String
+  workspaceId String
+  role        String    @default("MEMBER")
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+}
+
+model Account {
+  id                  String        @id @default(cuid())
+  name                String
+  initialBalance      Decimal       @db.Decimal(12, 2)
+  workspaceId         String
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  workspace           Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  transactions        Transaction[] @relation("AccountTransactions")
+  incomingTransfers   Transaction[] @relation("TransferDestination")
+
+  @@index([workspaceId])
+}
+
+model Card {
+  id          String    @id @default(cuid())
+  name        String
+  limit       Decimal   @db.Decimal(12, 2)
+  closingDay  Int
+  dueDay      Int
+  workspaceId String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+}
+
+model Category {
+  id           String        @id @default(cuid())
+  name         String
+  type         CategoryType
+  workspaceId  String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  workspace    Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([workspaceId])
+}
+
+model Transaction {
+  id                   String           @id @default(cuid())
+  amount               Decimal          @db.Decimal(12, 2)
+  type                 TransactionType
+  date                 DateTime
+  description          String
+  note                 String?
+  isPaid               Boolean          @default(true)
+  isRecurring          Boolean          @default(false)
+  recurrenceRule       String?
+  receiptUrl           String?
+  workspaceId          String
+  accountId            String
+  destinationAccountId String?
+  categoryId           String
+  userId               String
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  workspace            Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  account              Account          @relation("AccountTransactions", fields: [accountId], references: [id], onDelete: Restrict)
+  destinationAccount   Account?         @relation("TransferDestination", fields: [destinationAccountId], references: [id], onDelete: Restrict)
+  category             Category         @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  user                 User             @relation(fields: [userId], references: [id], onDelete: Restrict)
+  tags                 TransactionTag[]
+
+  @@index([workspaceId, date])
+  @@index([accountId])
+}
+
+model TransactionTag {
+  id            String      @id @default(cuid())
+  transactionId String
+  name          String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@index([transactionId])
+}
