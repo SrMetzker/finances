@@ -13,7 +13,24 @@ import type {
   RegisterDto,
 } from './api.types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const DEFAULT_API_URL = 'http://localhost:3001/api';
+
+function normalizeApiUrl(rawUrl?: string) {
+  const candidate = (rawUrl || DEFAULT_API_URL).trim();
+
+  if (/^https?:\/\//i.test(candidate)) {
+    return candidate.replace(/\/+$/, '');
+  }
+
+  // If protocol is missing, assume https in production-like hosts.
+  if (/^localhost(:\d+)?(\/|$)/i.test(candidate)) {
+    return `http://${candidate}`.replace(/\/+$/, '');
+  }
+
+  return `https://${candidate}`.replace(/\/+$/, '');
+}
+
+const API_URL = normalizeApiUrl(process.env.NEXT_PUBLIC_API_URL);
 
 class ApiClient {
   private token: string | null = null;
