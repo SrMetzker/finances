@@ -1,64 +1,226 @@
-import Link from 'next/link';
-import { type ReactNode } from 'react';
+'use client';
 
-const NAV = [
-  { href: '/', label: 'Dashboard' },
-  { href: '/transactions', label: 'Transações' },
-  { href: '/accounts', label: 'Contas' },
-  { href: '/cards', label: 'Cartões' },
-  { href: '/categories', label: 'Categorias' },
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import {
+  Home,
+  AlignJustify,
+  PieChart,
+  MoreHorizontal,
+  ArrowLeft,
+  ChevronDown,
+  ArrowUpRight,
+  ArrowDownRight,
+  Repeat,
+  Plus,
+  LogOut,
+} from 'lucide-react';
+import { type ReactNode, useMemo, useState } from 'react';
+import { QuickActionsMenu, type QuickActionItem } from '@/components/quick-actions-menu';
+import { NewTransactionModal } from '@/components/new-transaction-modal';
+import { useTransactions } from '@/hooks/use-transactions-api';
+import { useAuth } from '@/services/auth.context';
+import type { TransactionType } from '@/services/api.types';
+
+const BOTTOM_NAV = [
+  { href: '/dashboard', label: 'Principal', icon: Home },
+  { href: '/transactions', label: 'Transações', icon: AlignJustify },
+  null,
+  { href: '/categories', label: 'Categorias', icon: PieChart },
+  { href: '/accounts', label: 'Mais', icon: MoreHorizontal },
+] as const;
+
+const QUICK_ACTIONS: QuickActionItem[] = [
+  {
+    id: 'transferencia',
+    label: 'Transferencia',
+    icon: Repeat,
+    iconClassName: 'text-purple-400',
+  },
+  {
+    id: 'receita',
+    label: 'Receita',
+    icon: ArrowUpRight,
+    iconClassName: 'text-green-400',
+  },
+  {
+    id: 'despesa',
+    label: 'Despesa',
+    icon: ArrowDownRight,
+    iconClassName: 'text-red-400',
+  },
 ];
 
 export function PageShell({
   title,
+  backHref,
+  headerRight,
+  hideBottomNav,
+  onHeaderAdd,
   children,
 }: {
   title: string;
+  backHref?: string;
+  headerRight?: ReactNode;
+  hideBottomNav?: boolean;
+  onHeaderAdd?: () => void;
   children: ReactNode;
 }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { createTransaction } = useTransactions();
+  const { user, logout } = useAuth();
+  const [showQuickActions, setShowQuickActions] = useState(false);
+  const [showNewTransactionModal, setShowNewTransactionModal] = useState(false);
+  const [newTransactionType, setNewTransactionType] = useState<TransactionType>('SAIDA');
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
+  const shouldShowHeaderAdd = useMemo(
+    () => pathname === '/transactions' || pathname === '/accounts' || pathname === '/categories',
+    [pathname],
+  );
+
+  function toggleQuickActions() {
+    setShowQuickActions((v) => !v);
+  }
+
+  function closeNewTransactionModal() {
+    setShowNewTransactionModal(false);
+  }
+
+  function handleQuickActionSelect(actionId: string) {
+    const map: Record<string, TransactionType> = {
+      receita: 'ENTRADA',
+      despesa: 'SAIDA',
+      transferencia: 'TRANSFERENCIA',
+    };
+
+    setNewTransactionType(map[actionId] ?? 'SAIDA');
+    setShowQuickActions(false);
+    setShowNewTransactionModal(true);
+  }
+
+  const handleCreateTransaction = async (payload: any) => {
+    await createTransaction(payload);
+  };
+
+  function handleAvatarClick() {
+    setShowUserMenu((v) => !v);
+  }
+
+  function handleLogout() {
+    logout();
+    setShowUserMenu(false);
+    router.push('/auth/login');
+  }
+
+  function handleHeaderAddClick() {
+    if (onHeaderAdd) {
+      onHeaderAdd();
+      return;
+    }
+
+    if (pathname === '/transactions') {
+      setNewTransactionType('SAIDA');
+      setShowNewTransactionModal(true);
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-[#090c14] text-zinc-100 font-sans">
-      {/* mobile top bar */}
-      <header className="flex items-center justify-between border-b border-zinc-800 bg-[#0f1522] px-4 py-3 md:hidden">
-        <span className="text-lg font-bold text-emerald-400">Finances</span>
+    <div className="flex min-h-screen flex-col bg-[#0f1117] text-white">
+      {/* top bar */}
+      <header className="flex items-center justify-between px-4 py-3 bg-[#161825]">
+        {backHref ? (
+          <Link href={backHref} className="flex h-9 w-9 items-center justify-center">
+            <ArrowLeft size={22} />
+          </Link>
+        ) : (
+          <div className="relative">
+            <button
+              type="button"
+              onClick={handleAvatarClick}
+              className="h-9 w-9 rounded-full bg-zinc-600 overflow-hidden flex items-center justify-center text-xs font-bold"
+              aria-label="Abrir menu do usuário"
+            >
+              {user?.name.charAt(0).toUpperCase() || 'U'}
+            </button>
+
+            {showUserMenu && (
+              <div className="absolute left-0 top-11 z-50 min-w-40 rounded-lg border border-zinc-700 bg-[#1e2235] p-1 shadow-xl">
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-red-300 hover:bg-zinc-700/40"
+                >
+                  <LogOut size={14} />
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        <button className="flex items-center gap-1 font-semibold text-base">
+          {title}
+          {!backHref && <ChevronDown size={16} className="text-zinc-400" />}
+        </button>
+
+        {headerRight !== undefined ? (
+          headerRight
+        ) : backHref ? (
+          <div className="w-9" />
+        ) : shouldShowHeaderAdd ? (
+          <button
+            type="button"
+            onClick={handleHeaderAddClick}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-purple-600 text-white hover:bg-purple-500"
+            aria-label="Adicionar"
+          >
+            <Plus size={18} />
+          </button>
+        ) : (
+          <div className="h-9">
+          </div>
+        )}
       </header>
 
-      <div className="mx-auto flex max-w-6xl gap-0 md:gap-6 md:p-6">
-        {/* sidebar */}
-        <aside className="hidden w-56 flex-shrink-0 rounded-2xl border border-zinc-800 bg-[#0f1522] p-5 md:block">
-          <h1 className="mb-6 text-xl font-bold text-emerald-400">Finances</h1>
-          <nav className="space-y-1 text-sm">
-            {NAV.map((n) => (
+      {/* content */}
+      <main className={`flex-1 ${hideBottomNav ? '' : 'pb-20'}`}>{children}</main>
+
+      {/* bottom nav */}
+      {!hideBottomNav && (
+        <nav className="fixed bottom-0 left-0 right-0 flex items-end h-16 bg-[#161825] border-t border-zinc-800/60">
+          {BOTTOM_NAV.map((item, i) =>
+            item === null ? (
+              <QuickActionsMenu
+                key="fab"
+                isOpen={showQuickActions}
+                onToggle={toggleQuickActions}
+                onSelect={handleQuickActionSelect}
+                items={QUICK_ACTIONS}
+              />
+            ) : (
               <Link
-                key={n.href}
-                href={n.href}
-                className="block rounded-lg px-3 py-2 text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-white"
+                key={item.href}
+                href={item.href}
+                className={`flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] transition-colors ${
+                  pathname === item.href ? 'text-purple-400' : 'text-zinc-500'
+                }`}
               >
-                {n.label}
+                <item.icon size={20} />
+                <span>{item.label}</span>
               </Link>
-            ))}
-          </nav>
-        </aside>
+            ),
+          )}
+        </nav>
+      )}
 
-        {/* main area */}
-        <main className="flex-1 rounded-none md:rounded-2xl border-0 md:border border-zinc-800 bg-[#0f1522] p-5">
-          <h2 className="mb-6 text-xl font-semibold">{title}</h2>
-          {children}
-        </main>
-      </div>
-
-      {/* mobile bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 flex border-t border-zinc-800 bg-[#0f1522] md:hidden">
-        {NAV.map((n) => (
-          <Link
-            key={n.href}
-            href={n.href}
-            className="flex flex-1 flex-col items-center py-2 text-xs text-zinc-400 hover:text-white"
-          >
-            {n.label}
-          </Link>
-        ))}
-      </nav>
+      <NewTransactionModal
+        isOpen={showNewTransactionModal}
+        type={newTransactionType}
+        onClose={closeNewTransactionModal}
+        onSubmit={handleCreateTransaction}
+      />
     </div>
   );
 }
