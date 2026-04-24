@@ -23,13 +23,15 @@ export class CategoriesService {
 
   async update(workspaceId: string, id: string, dto: UpdateCategoryDto) {
     const result = await this.categoriesRepository.update(workspaceId, id, dto);
-    if (result.count === 0) throw new NotFoundException('Categoria não encontrada.');
+    if (result.count === 0)
+      throw new NotFoundException('Categoria não encontrada.');
     return this.findOne(workspaceId, id);
   }
 
   async remove(workspaceId: string, id: string) {
     const result = await this.categoriesRepository.remove(workspaceId, id);
-    if (result.count === 0) throw new NotFoundException('Categoria não encontrada.');
+    if (result.count === 0)
+      throw new NotFoundException('Categoria não encontrada.');
     return { deleted: true };
   }
 }

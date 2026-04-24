@@ -31,11 +31,11 @@ async function bootstrap() {
   });
 
   const prismaService = app.get(PrismaService);
-  await prismaService.enableShutdownHooks(app);
+  prismaService.enableShutdownHooks(app);
 
   const port = process.env.PORT ?? 3001;
   await app.listen(port);
   console.log(`Backend running on http://localhost:${port}`);
 }
 
-bootstrap();
+void bootstrap();

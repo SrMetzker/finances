@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { createElement, useMemo, useState } from 'react';
 import { Check, ChevronDown } from 'lucide-react';
 import {
   COLOR_OPTIONS,
@@ -28,8 +28,6 @@ export function IconColorPicker({
   function toggleSection(section: 'color' | 'icon') {
     setOpenSection((current) => (current === section ? null : section));
   }
-
-  const SelectedIcon = getIconComponent(selectedIcon);
 
   return (
     <div className="space-y-3">
@@ -96,7 +94,10 @@ export function IconColorPicker({
                 borderColor: selectedColor,
               }}
             >
-              <SelectedIcon size={14} style={{ color: selectedColor }} />
+              {createElement(getIconComponent(selectedIcon), {
+                size: 14,
+                style: { color: selectedColor },
+              })}
             </span>
             <ChevronDown
               size={16}
@@ -109,7 +110,6 @@ export function IconColorPicker({
           <div className="border-t border-zinc-800 px-3 py-3">
             <div className="grid max-h-44 grid-cols-6 gap-2 overflow-y-auto pr-1">
               {ICON_OPTIONS.map((option) => {
-                const Icon = getIconComponent(option.id);
                 const isSelected = selectedIcon === option.id;
 
                 return (
@@ -125,7 +125,10 @@ export function IconColorPicker({
                     aria-label={`Selecionar icone ${option.label}`}
                     title={option.label}
                   >
-                    <Icon size={18} style={{ color: selectedColor }} />
+                    {createElement(getIconComponent(option.id), {
+                      size: 18,
+                      style: { color: selectedColor },
+                    })}
                   </button>
                 );
               })}

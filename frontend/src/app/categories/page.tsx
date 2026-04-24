@@ -12,7 +12,7 @@ import {
 } from '@/lib/visual-options';
 import type { CategoryType } from '@/services/api.types';
 import { Pencil, Plus, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 const TYPE_COLOR: Record<string, string> = {
   ENTRADA: 'text-green-400 bg-green-900/30',
@@ -65,17 +65,12 @@ export default function CategoriesPage() {
   function closeModal() {
     if (isSaving) return;
     setIsModalOpen(false);
+    setEditingCategoryId(null);
+    setName('');
+    setType('SAIDA');
+    setIcon(DEFAULT_CATEGORY_ICON);
+    setColor(DEFAULT_CATEGORY_COLOR);
   }
-
-  useEffect(() => {
-    if (!isModalOpen) {
-      setEditingCategoryId(null);
-      setName('');
-      setType('SAIDA');
-      setIcon(DEFAULT_CATEGORY_ICON);
-      setColor(DEFAULT_CATEGORY_COLOR);
-    }
-  }, [isModalOpen]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

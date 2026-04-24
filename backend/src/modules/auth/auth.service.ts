@@ -37,7 +37,7 @@ export class AuthService {
       user.id,
     );
 
-    return this.buildToken(user.id, user.email, user.name);
+    return this.buildToken(user.id, user.email, user.name, user.avatarUrl);
   }
 
   async login(dto: LoginDto) {
@@ -45,10 +45,15 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('Credenciais inválidas.');
     const valid = await bcrypt.compare(dto.password, user.password);
     if (!valid) throw new UnauthorizedException('Credenciais inválidas.');
-    return this.buildToken(user.id, user.email, user.name);
+    return this.buildToken(user.id, user.email, user.name, user.avatarUrl);
   }
 
-  private async buildToken(userId: string, email: string, name: string) {
+  private async buildToken(
+    userId: string,
+    email: string,
+    name: string,
+    avatarUrl?: string | null,
+  ) {
     const accessToken = await this.jwtService.signAsync({ sub: userId, email });
 
     // Buscar primeiro workspace do usuário
@@ -57,7 +62,12 @@ export class AuthService {
 
     return {
       accessToken,
-      user: { id: userId, email, name },
+      user: {
+        id: userId,
+        email,
+        name,
+        avatarUrl: avatarUrl ?? null,
+      },
       workspace: defaultWorkspace || null,
     };
   }

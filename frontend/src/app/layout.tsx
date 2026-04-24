@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { AuthGate } from '@/components/auth-gate';
 import { AuthProvider } from '@/services/auth.context';
 import './globals.css';
 
@@ -13,7 +14,9 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className="h-full">
       <body className="min-h-full antialiased">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <AuthGate>{children}</AuthGate>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -13,7 +13,7 @@ export class WorkspacesService {
   ) {}
 
   create(dto: CreateWorkspaceDto, userId: string) {
-    return this.workspacesRepository.create(dto.name, userId);
+    return this.workspacesRepository.create(dto.name, userId, dto.currency);
   }
 
   listByUser(userId: string) {

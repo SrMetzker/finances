@@ -6,6 +6,7 @@ import { useAccounts } from '@/hooks/use-accounts-api';
 import { useMonthFilter } from '@/hooks/use-month-filter';
 import { useTransactions } from '@/hooks/use-transactions-api';
 import { useCategories } from '@/hooks/use-categories-api';
+import { formatCurrency } from '@/lib/currency';
 import {
   DEFAULT_ACCOUNT_COLOR,
   DEFAULT_ACCOUNT_ICON,
@@ -14,9 +15,9 @@ import {
   type VisualIconName,
 } from '@/lib/visual-options';
 import { ChevronLeft, ChevronRight, MoreVertical, Plus, X, Edit } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useAuth } from '@/services/auth.context';
+import { useState } from 'react';
 
-const eur = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'EUR' });
 const MONTH_NAMES = [
   'Janeiro',
   'Fevereiro',
@@ -37,7 +38,10 @@ export default function AccountsPage() {
   const { month, setMonth, parsed } = useMonthFilter(new Date());
   const { transactions } = useTransactions(parsed.month, parsed.year);
   const { categories } = useCategories();
+  const { workspace } = useAuth();
   const { createTransaction } = useTransactions();
+    const money = (value: number) => formatCurrency(value, workspace?.currency ?? 'EUR');
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [name, setName] = useState('');
   const [initialBalance, setInitialBalance] = useState('0');
@@ -226,11 +230,11 @@ export default function AccountsPage() {
           <div className="mb-4 grid grid-cols-2 gap-3 border-b border-zinc-500/50 pb-4">
             <div className="space-y-1">
               <p className="text-xs font-medium text-zinc-300">Saldo atual</p>
-              <p className="font-bold text-green-400">{eur.format(totalCurrent)}</p>
+              <p className="font-bold text-green-400">{money(totalCurrent)}</p>
             </div>
             <div className="space-y-1 text-right">
               <p className="text-xs font-medium text-zinc-300">Saldo previsto</p>
-              <p className="font-bold text-green-400">{eur.format(totalProjected)}</p>
+              <p className="font-bold text-green-400">{money(totalProjected)}</p>
             </div>
           </div>
 
@@ -297,8 +301,8 @@ export default function AccountsPage() {
                       <p className="text-xs text-zinc-400">Saldo previsto</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-green-400">{eur.format(current)}</p>
-                      <p className="text-zinc-500">{eur.format(projected)}</p>
+                      <p className="font-bold text-green-400">{money(current)}</p>
+                      <p className="text-zinc-500">{money(projected)}</p>
                     </div>
                   </div>
                 </div>

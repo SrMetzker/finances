@@ -11,6 +11,9 @@ import type {
   CreateCategoryDto,
   AuthResponse,
   RegisterDto,
+  UpdateProfileDto,
+  ChangePasswordDto,
+  DeleteAccountDto,
   CreateWorkspaceDto,
   UpdateWorkspaceDto,
 } from './api.types';
@@ -32,21 +35,15 @@ function normalizeApiUrl(rawUrl?: string) {
 }
 
 const API_URL = normalizeApiUrl(process.env.NEXT_PUBLIC_API_URL);
+const AUTH_EXPIRED_EVENT = 'finances:auth-expired';
 
 class ApiClient {
-  private token: string | null = null;
   private workspaceId: string | null = null;
 
   constructor() {
     if (typeof window !== 'undefined') {
-      this.token = localStorage.getItem('auth_token');
       this.workspaceId = localStorage.getItem('workspace_id');
     }
-  }
-
-  setToken(token: string) {
-    this.token = token;
-    localStorage.setItem('auth_token', token);
   }
 
   setWorkspaceId(id: string | null) {
@@ -60,18 +57,12 @@ class ApiClient {
     localStorage.removeItem('workspace_id');
   }
 
-  getToken() {
-    return this.token;
-  }
-
   getWorkspaceId() {
     return this.workspaceId;
   }
 
   clearAuth() {
-    this.token = null;
     this.workspaceId = null;
-    localStorage.removeItem('auth_token');
     localStorage.removeItem('workspace_id');
   }
 
@@ -84,10 +75,6 @@ class ApiClient {
       'Content-Type': 'application/json',
     };
 
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
-    }
-
     if (this.workspaceId) {
       headers['X-Workspace-ID'] = this.workspaceId;
     }
@@ -95,6 +82,7 @@ class ApiClient {
     const options: RequestInit = {
       method,
       headers,
+      credentials: 'include',
     };
 
     if (data) {
@@ -104,6 +92,18 @@ class ApiClient {
     const response = await fetch(`${API_URL}${url}`, options);
 
     if (!response.ok) {
+      if (response.status === 401) {
+        void fetch(`${API_URL}/auth/logout`, {
+          method: 'POST',
+          credentials: 'include',
+        }).catch(() => {
+          // Ignoramos falha aqui para não mascarar o erro original.
+        });
+        this.clearAuth();
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent(AUTH_EXPIRED_EVENT));
+        }
+      }
       const error = await response.json().catch(() => ({}));
       throw new Error(error.message || `API Error: ${response.statusText}`);
     }
@@ -120,9 +120,29 @@ class ApiClient {
     return this.request<AuthResponse>('POST', '/auth/register', data);
   }
 
+  logout() {
+    return this.request<{ ok: boolean }>('POST', '/auth/logout');
+  }
+
   // Users endpoints
   getCurrentUser() {
     return this.request<User>('GET', '/users/me');
+  }
+
+  updateCurrentUserProfile(data: UpdateProfileDto) {
+    return this.request<User>('PATCH', '/users/me/profile', data);
+  }
+
+  changeCurrentUserPassword(data: ChangePasswordDto) {
+    return this.request<{ updated: boolean }>('PATCH', '/users/me/password', data);
+  }
+
+  resetCurrentUserData() {
+    return this.request<{ reset: boolean }>('POST', '/users/me/reset-data');
+  }
+
+  deleteCurrentUserAccount(data: DeleteAccountDto) {
+    return this.request<{ deleted: boolean }>('DELETE', '/users/me', data);
   }
 
   // Workspaces endpoints

@@ -1,0 +1,5 @@
+ALTER TABLE "User"
+ADD COLUMN "avatarUrl" TEXT;
+
+ALTER TABLE "Workspace"
+ADD COLUMN "currency" TEXT NOT NULL DEFAULT 'EUR';

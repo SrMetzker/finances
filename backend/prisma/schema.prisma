@@ -24,6 +24,7 @@ model User {
   name         String
   email        String            @unique
   password     String
+  avatarUrl    String?
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
   memberships  WorkspaceMember[]
@@ -33,6 +34,7 @@ model User {
 model Workspace {
   id           String            @id @default(cuid())
   name         String
+  currency     String            @default("EUR")
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
   members      WorkspaceMember[]

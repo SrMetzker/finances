@@ -5,10 +5,11 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class WorkspacesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(name: string, userId: string) {
+  create(name: string, userId: string, currency?: string) {
     return this.prisma.workspace.create({
       data: {
         name,
+        currency: currency ?? 'EUR',
         members: { create: { userId, role: 'OWNER' } },
       },
       include: { members: true },
@@ -31,7 +32,11 @@ export class WorkspacesRepository {
     });
   }
 
-  updateForUser(userId: string, workspaceId: string, data: { name?: string }) {
+  updateForUser(
+    userId: string,
+    workspaceId: string,
+    data: { name?: string; currency?: string },
+  ) {
     return this.prisma.workspace.updateMany({
       where: {
         id: workspaceId,
