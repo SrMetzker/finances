@@ -6,7 +6,10 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class CategoriesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(workspaceId: string, data: { name: string; type: CategoryType }) {
+  create(
+    workspaceId: string,
+    data: { name: string; type: CategoryType; icon: string; color: string },
+  ) {
     return this.prisma.category.create({ data: { ...data, workspaceId } });
   }
 
@@ -24,7 +27,7 @@ export class CategoriesRepository {
   update(
     workspaceId: string,
     id: string,
-    data: { name?: string; type?: CategoryType },
+    data: { name?: string; type?: CategoryType; icon?: string; color?: string },
   ) {
     return this.prisma.category.updateMany({
       where: { id, workspaceId },

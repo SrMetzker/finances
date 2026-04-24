@@ -1,4 +1,4 @@
-import { IsNumber, IsString, MinLength } from 'class-validator';
+import { IsHexColor, IsNumber, IsString, MinLength } from 'class-validator';
 
 export class CreateAccountDto {
   @IsString()
@@ -7,4 +7,11 @@ export class CreateAccountDto {
 
   @IsNumber()
   initialBalance: number;
+
+  @IsString()
+  @MinLength(2)
+  icon: string;
+
+  @IsHexColor()
+  color: string;
 }

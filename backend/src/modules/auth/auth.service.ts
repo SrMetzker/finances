@@ -6,6 +6,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { UsersService } from '../users/users.service';
+import { WorkspacesService } from '../workspaces/workspaces.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
@@ -13,6 +14,7 @@ import { RegisterDto } from './dto/register.dto';
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
+    private readonly workspacesService: WorkspacesService,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -27,6 +29,14 @@ export class AuthService {
       email: dto.email,
       password: hashed,
     });
+
+    await this.workspacesService.create(
+      {
+        name: dto.workspaceName?.trim() || `Financas de ${dto.name.trim()}`,
+      },
+      user.id,
+    );
+
     return this.buildToken(user.id, user.email, user.name);
   }
 
@@ -38,8 +48,17 @@ export class AuthService {
     return this.buildToken(user.id, user.email, user.name);
   }
 
-  private async buildToken(id: string, email: string, name: string) {
-    const accessToken = await this.jwtService.signAsync({ sub: id, email });
-    return { accessToken, user: { id, email, name } };
+  private async buildToken(userId: string, email: string, name: string) {
+    const accessToken = await this.jwtService.signAsync({ sub: userId, email });
+
+    // Buscar primeiro workspace do usuário
+    const workspaces = await this.workspacesService.listByUser(userId);
+    const defaultWorkspace = workspaces[0];
+
+    return {
+      accessToken,
+      user: { id: userId, email, name },
+      workspace: defaultWorkspace || null,
+    };
   }
 }
