@@ -15,7 +15,23 @@ import type {
   UpdateWorkspaceDto,
 } from './api.types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const DEFAULT_API_URL = 'http://localhost:3001/api';
+
+function normalizeApiUrl(rawUrl?: string) {
+  const candidate = (rawUrl || DEFAULT_API_URL).trim();
+
+  if (/^https?:\/\//i.test(candidate)) {
+    return candidate.replace(/\/+$/, '');
+  }
+
+  if (/^localhost(:\d+)?(\/|$)/i.test(candidate)) {
+    return `http://${candidate}`.replace(/\/+$/, '');
+  }
+
+  return `https://${candidate}`.replace(/\/+$/, '');
+}
+
+const API_URL = normalizeApiUrl(process.env.NEXT_PUBLIC_API_URL);
 
 class ApiClient {
   private token: string | null = null;
