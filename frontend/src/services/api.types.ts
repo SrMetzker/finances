@@ -118,3 +118,9 @@ export type CreateCategoryDto = {
   icon: string;
   color: string;
 };
+
+export type CreateWorkspaceDto = {
+  name: string;
+};
+
+export type UpdateWorkspaceDto = Partial<CreateWorkspaceDto>;

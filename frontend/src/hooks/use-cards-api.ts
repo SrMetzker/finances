@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { apiClient } from '@/services/api.client';
+import { WORKSPACE_CHANGED_EVENT } from '@/services/auth.context';
 import type { Card, CreateCardDto } from '@/services/api.types';
 
 export function useCards() {
@@ -23,7 +24,25 @@ export function useCards() {
   }, []);
 
   useEffect(() => {
-    fetchCards();
+    const timeoutId = window.setTimeout(() => {
+      void fetchCards();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [fetchCards]);
+
+  useEffect(() => {
+    const handleWorkspaceChanged = () => {
+      void fetchCards();
+    };
+
+    window.addEventListener(WORKSPACE_CHANGED_EVENT, handleWorkspaceChanged);
+
+    return () => {
+      window.removeEventListener(WORKSPACE_CHANGED_EVENT, handleWorkspaceChanged);
+    };
   }, [fetchCards]);
 
   const createCard = useCallback(async (input: CreateCardDto) => {

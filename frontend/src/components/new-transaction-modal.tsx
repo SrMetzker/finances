@@ -14,7 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import { alphaHex, getIconComponent } from '@/lib/visual-options';
-import { useEffect, useMemo, useState } from 'react';
+import { createElement, useEffect, useMemo, useState } from 'react';
 import { useAccounts } from '@/hooks/use-accounts-api';
 import { useCategories } from '@/hooks/use-categories-api';
 import type { TransactionType, CreateTransactionDto } from '@/services/api.types';
@@ -39,6 +39,19 @@ function todayIsoDate() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function isoDateFromOffset(daysOffset: number) {
+  const base = new Date();
+  base.setDate(base.getDate() + daysOffset);
+  return base.toISOString().slice(0, 10);
+}
+
+function isFutureDate(isoDate: string) {
+  const selected = new Date(`${isoDate}T00:00:00`);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return selected.getTime() > today.getTime();
+}
+
 export function NewTransactionModal({
   isOpen,
   type,
@@ -56,6 +69,7 @@ export function NewTransactionModal({
   const [amount, setAmount] = useState('');
   const [paid, setPaid] = useState(true);
   const [dateOption, setDateOption] = useState<'today' | 'yesterday' | 'other'>('today');
+  const [customDate, setCustomDate] = useState(todayIsoDate());
   const [fixedExpense, setFixedExpense] = useState(false);
   const [repeat, setRepeat] = useState(false);
   const [description, setDescription] = useState('');
@@ -93,23 +107,30 @@ export function NewTransactionModal({
   useEffect(() => {
     if (!isOpen) return;
 
-    // Set default account and category
-    if (accounts.length > 0 && !accountId) {
-      setAccountId(accounts[0].id);
-    }
-    if (type === 'TRANSFERENCIA' && accounts.length > 1 && !destinationAccountId) {
-      setDestinationAccountId(accounts[1].id);
-    }
-    if (defaultCategoryId && categoryId !== defaultCategoryId) {
-      setCategoryId(defaultCategoryId);
-    }
+    const timeoutId = window.setTimeout(() => {
+      // Set default account and category
+      if (accounts.length > 0 && !accountId) {
+        setAccountId(accounts[0].id);
+      }
+      if (type === 'TRANSFERENCIA' && accounts.length > 1 && !destinationAccountId) {
+        setDestinationAccountId(accounts[1].id);
+      }
+      if (defaultCategoryId && categoryId !== defaultCategoryId) {
+        setCategoryId(defaultCategoryId);
+      }
 
-    setAmount('');
-    setPaid(true);
-    setDateOption('today');
-    setFixedExpense(false);
-    setRepeat(false);
-    setDescription('');
+      setAmount('');
+      setPaid(true);
+      setDateOption('today');
+      setCustomDate(todayIsoDate());
+      setFixedExpense(false);
+      setRepeat(false);
+      setDescription('');
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [
     isOpen,
     type,
@@ -121,15 +142,21 @@ export function NewTransactionModal({
   ]);
 
   useEffect(() => {
-    if (type !== 'TRANSFERENCIA') {
-      setDestinationAccountId('');
-      return;
-    }
+    const timeoutId = window.setTimeout(() => {
+      if (type !== 'TRANSFERENCIA') {
+        setDestinationAccountId('');
+        return;
+      }
 
-    if (destinationAccountId === accountId) {
-      const nextDestinationAccount = accounts.find((account) => account.id !== accountId);
-      setDestinationAccountId(nextDestinationAccount?.id ?? '');
-    }
+      if (destinationAccountId === accountId) {
+        const nextDestinationAccount = accounts.find((account) => account.id !== accountId);
+        setDestinationAccountId(nextDestinationAccount?.id ?? '');
+      }
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [type, accountId, destinationAccountId, accounts]);
 
   if (!isOpen) {
@@ -143,13 +170,39 @@ export function NewTransactionModal({
   const selectedDestinationAccount = availableDestinationAccounts.find(
     (account) => account.id === destinationAccountId,
   );
-  const SelectedCategoryIcon = getIconComponent(selectedCategory?.icon);
-  const SelectedAccountIcon = getIconComponent(selectedAccount?.icon);
-  const SelectedDestinationAccountIcon = getIconComponent(selectedDestinationAccount?.icon);
+  const selectedCategoryIcon = getIconComponent(selectedCategory?.icon);
+  const selectedAccountIcon = getIconComponent(selectedAccount?.icon);
+  const selectedDestinationAccountIcon = getIconComponent(selectedDestinationAccount?.icon);
   const accountPickerOptions =
     accountPickerTarget === 'destination' ? availableDestinationAccounts : accounts;
   const accountPickerTitle =
     accountPickerTarget === 'destination' ? 'Selecione a conta destino' : 'Selecione uma conta';
+  const hasFutureDate = dateOption === 'other' && isFutureDate(customDate);
+
+  function syncPaidWithDate(isoDate: string) {
+    setPaid(!isFutureDate(isoDate));
+  }
+
+  function handleDateOptionChange(option: 'today' | 'yesterday' | 'other') {
+    setDateOption(option);
+
+    if (option === 'today') {
+      syncPaidWithDate(todayIsoDate());
+      return;
+    }
+
+    if (option === 'yesterday') {
+      syncPaidWithDate(isoDateFromOffset(-1));
+      return;
+    }
+
+    syncPaidWithDate(customDate);
+  }
+
+  function handleCustomDateChange(nextDate: string) {
+    setCustomDate(nextDate);
+    syncPaidWithDate(nextDate);
+  }
 
   function handleAccountSelection(selectedId: string) {
     if (accountPickerTarget === 'destination') {
@@ -162,11 +215,15 @@ export function NewTransactionModal({
   }
 
   function resolveDate() {
-    const base = new Date();
-    if (dateOption === 'yesterday') {
-      base.setDate(base.getDate() - 1);
+    if (dateOption === 'today') {
+      return todayIsoDate();
     }
-    return base.toISOString().slice(0, 10);
+
+    if (dateOption === 'yesterday') {
+      return isoDateFromOffset(-1);
+    }
+
+    return customDate;
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -188,7 +245,7 @@ export function NewTransactionModal({
     const payload: CreateTransactionDto = {
       amount: numericAmount,
       type,
-      date: dateOption === 'other' ? todayIsoDate() : resolveDate(),
+      date: resolveDate(),
       description: description.trim() || info.title,
       isPaid: paid,
       isRecurring: repeat,
@@ -251,15 +308,18 @@ export function NewTransactionModal({
             <div className="flex items-center justify-between px-5 py-4">
               <div className="flex items-center gap-3 text-zinc-200">
                 <CheckCircle size={20} className="text-zinc-400" />
-                <span>Pago</span>
+                <span>{paid ? 'Pago' : 'Pendente'}</span>
               </div>
               <button
                 type="button"
-                onClick={() => setPaid(!paid)}
-                className={`w-12 h-6 rounded-full transition-colors relative ${paid ? 'bg-red-500' : 'bg-zinc-700'}`}
+                onClick={() => setPaid((current) => !current)}
+                disabled={hasFutureDate}
+                className={`relative h-6 w-12 overflow-hidden rounded-full transition-colors ${
+                  paid ? 'bg-red-500' : 'bg-zinc-700'
+                } ${hasFutureDate ? 'cursor-not-allowed opacity-60' : ''}`}
               >
                 <span
-                  className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${paid ? 'translate-x-6' : 'translate-x-0.5'}`}
+                  className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${paid ? 'translate-x-6' : 'translate-x-0'}`}
                 />
               </button>
             </div>
@@ -273,7 +333,7 @@ export function NewTransactionModal({
                     <button
                       key={opt}
                       type="button"
-                      onClick={() => setDateOption(opt)}
+                      onClick={() => handleDateOptionChange(opt)}
                       className={`rounded-full px-4 py-1 text-sm font-medium transition-colors ${
                         dateOption === opt ? 'bg-red-500 text-white' : 'bg-zinc-700 text-zinc-300'
                       }`}
@@ -284,6 +344,20 @@ export function NewTransactionModal({
                 })}
               </div>
             </div>
+
+            {dateOption === 'other' && (
+              <div className="px-5 pb-4">
+                <div className="ml-8 rounded-xl border border-zinc-700 bg-zinc-900/60 p-3">
+                  <p className="mb-2 text-xs text-zinc-400">Selecione o dia da transação</p>
+                  <input
+                    type="date"
+                    value={customDate}
+                    onChange={(e) => handleCustomDateChange(e.target.value)}
+                    className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-500"
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="flex items-center px-5 py-4 gap-3">
               <Mic size={20} className="text-zinc-400 flex-shrink-0" />
@@ -309,7 +383,10 @@ export function NewTransactionModal({
                     borderColor: alphaHex(selectedCategory?.color ?? '#6366F1', '66'),
                   }}
                 >
-                  <SelectedCategoryIcon size={15} style={{ color: selectedCategory?.color ?? '#6366F1' }} />
+                  {createElement(selectedCategoryIcon, {
+                    size: 15,
+                    style: { color: selectedCategory?.color ?? '#6366F1' },
+                  })}
                 </span>
                 <span className="rounded-full border border-zinc-600 px-3 py-1 text-sm text-zinc-200">
                   {selectedCategory?.name ?? 'Categoria'}
@@ -331,7 +408,10 @@ export function NewTransactionModal({
                     borderColor: alphaHex(selectedAccount?.color ?? '#EF4444', '66'),
                   }}
                 >
-                  <SelectedAccountIcon size={15} style={{ color: selectedAccount?.color ?? '#EF4444' }} />
+                  {createElement(selectedAccountIcon, {
+                    size: 15,
+                    style: { color: selectedAccount?.color ?? '#EF4444' },
+                  })}
                 </span>
                 <span className="flex items-center gap-2 rounded-full border border-zinc-600 px-3 py-1 text-sm text-zinc-200">
                   {selectedAccount?.name ?? 'Conta'}
@@ -354,10 +434,10 @@ export function NewTransactionModal({
                       borderColor: alphaHex(selectedDestinationAccount?.color ?? '#10B981', '66'),
                     }}
                   >
-                    <SelectedDestinationAccountIcon
-                      size={15}
-                      style={{ color: selectedDestinationAccount?.color ?? '#10B981' }}
-                    />
+                    {createElement(selectedDestinationAccountIcon, {
+                      size: 15,
+                      style: { color: selectedDestinationAccount?.color ?? '#10B981' },
+                    })}
                   </span>
                   <span className="flex items-center gap-2 rounded-full border border-zinc-600 px-3 py-1 text-sm text-zinc-200">
                     {selectedDestinationAccount?.name ?? 'Conta destino'}
@@ -382,10 +462,10 @@ export function NewTransactionModal({
               <button
                 type="button"
                 onClick={() => setFixedExpense(!fixedExpense)}
-                className={`w-12 h-6 rounded-full transition-colors relative ${fixedExpense ? 'bg-purple-500' : 'bg-zinc-700'}`}
+                className={`relative h-6 w-12 overflow-hidden rounded-full transition-colors ${fixedExpense ? 'bg-purple-500' : 'bg-zinc-700'}`}
               >
                 <span
-                  className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${fixedExpense ? 'translate-x-6' : 'translate-x-0.5'}`}
+                  className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${fixedExpense ? 'translate-x-6' : 'translate-x-0'}`}
                 />
               </button>
             </div>
@@ -398,10 +478,10 @@ export function NewTransactionModal({
               <button
                 type="button"
                 onClick={() => setRepeat(!repeat)}
-                className={`w-12 h-6 rounded-full transition-colors relative ${repeat ? 'bg-purple-500' : 'bg-zinc-700'}`}
+                className={`relative h-6 w-12 overflow-hidden rounded-full transition-colors ${repeat ? 'bg-purple-500' : 'bg-zinc-700'}`}
               >
                 <span
-                  className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${repeat ? 'translate-x-6' : 'translate-x-0.5'}`}
+                  className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${repeat ? 'translate-x-6' : 'translate-x-0'}`}
                 />
               </button>
             </div>

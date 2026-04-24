@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { apiClient } from '@/services/api.client';
+import { WORKSPACE_CHANGED_EVENT } from '@/services/auth.context';
 import type { Account, CreateAccountDto } from '@/services/api.types';
 
 const TRANSACTIONS_CHANGED_EVENT = 'finances:transactions-changed';
@@ -25,7 +26,13 @@ export function useAccounts() {
   }, []);
 
   useEffect(() => {
-    fetchAccounts();
+    const timeoutId = window.setTimeout(() => {
+      void fetchAccounts();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [fetchAccounts]);
 
   useEffect(() => {
@@ -33,10 +40,16 @@ export function useAccounts() {
       void fetchAccounts();
     };
 
+    const handleWorkspaceChanged = () => {
+      void fetchAccounts();
+    };
+
     window.addEventListener(TRANSACTIONS_CHANGED_EVENT, handleTransactionsChanged);
+    window.addEventListener(WORKSPACE_CHANGED_EVENT, handleWorkspaceChanged);
 
     return () => {
       window.removeEventListener(TRANSACTIONS_CHANGED_EVENT, handleTransactionsChanged);
+      window.removeEventListener(WORKSPACE_CHANGED_EVENT, handleWorkspaceChanged);
     };
   }, [fetchAccounts]);
 
