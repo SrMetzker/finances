@@ -9,7 +9,7 @@ import {
   ReactNode,
 } from 'react';
 import { apiClient } from '@/services/api.client';
-import type { User, Workspace, RegisterDto } from '@/services/api.types';
+import type { User, Workspace, RegisterDto, UpdateProfileDto } from '@/services/api.types';
 
 interface AuthContextType {
   user: User | null;
@@ -21,12 +21,15 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (input: RegisterDto) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
+  updateProfile: (input: UpdateProfileDto) => Promise<void>;
   setWorkspaceId: (id: string) => void;
   refreshWorkspaces: (preferredWorkspaceId?: string | null) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const WORKSPACE_CHANGED_EVENT = 'finances:workspace-changed';
+const AUTH_EXPIRED_EVENT = 'finances:auth-expired';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -81,20 +84,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Initialize from localStorage
   useEffect(() => {
-    const token = localStorage.getItem('auth_token');
     const savedWorkspaceId = localStorage.getItem('workspace_id');
 
-    if (!token) {
-      const timeoutId = window.setTimeout(() => {
-        setIsLoading(false);
-      }, 0);
-
-      return () => {
-        window.clearTimeout(timeoutId);
-      };
-    }
-
-    apiClient.setToken(token);
     if (savedWorkspaceId) {
       apiClient.setWorkspaceId(savedWorkspaceId);
     }
@@ -105,8 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(userData);
         })
         .catch(() => {
-          // Token is invalid, clear it
-          localStorage.removeItem('auth_token');
+          // Sessao invalida/expirada: limpamos o estado local.
           localStorage.removeItem('workspace_id');
           localStorage.removeItem('workspace');
           apiClient.clearAuth();
@@ -128,7 +118,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       const response = await apiClient.login(email, password);
-      apiClient.setToken(response.accessToken);
       setUser(response.user);
       await syncWorkspaces(response.workspace?.id ?? null, response.workspace ?? null);
     } finally {
@@ -140,7 +129,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       const response = await apiClient.register(input);
-      apiClient.setToken(response.accessToken);
       setUser(response.user);
 
       await syncWorkspaces(response.workspace?.id ?? null, response.workspace ?? null);
@@ -150,6 +138,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [syncWorkspaces]);
 
   const logout = useCallback(() => {
+    void apiClient.logout().catch(() => {
+      // Mesmo com erro no backend, limpamos o estado local.
+    });
     apiClient.clearAuth();
     setUser(null);
     setWorkspace(null);
@@ -157,6 +148,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setWorkspaceIdState(null);
     localStorage.removeItem('workspace_id');
     localStorage.removeItem('workspace');
+  }, []);
+
+  useEffect(() => {
+    function handleAuthExpired() {
+      logout();
+    }
+
+    window.addEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+    return () => {
+      window.removeEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+    };
+  }, [logout]);
+
+  const refreshUser = useCallback(async () => {
+    const current = await apiClient.getCurrentUser();
+    setUser(current);
+  }, []);
+
+  const updateProfile = useCallback(async (input: UpdateProfileDto) => {
+    const updated = await apiClient.updateCurrentUserProfile(input);
+    setUser(updated);
   }, []);
 
   const setWorkspaceId = useCallback((id: string) => {
@@ -182,6 +194,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         register,
         logout,
+        refreshUser,
+        updateProfile,
         setWorkspaceId,
         refreshWorkspaces,
       }}

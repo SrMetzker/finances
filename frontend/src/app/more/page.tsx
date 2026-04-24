@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Building2, ChevronRight, Landmark } from 'lucide-react';
+import { Building2, ChevronRight, Landmark, Settings } from 'lucide-react';
 import { PageShell } from '@/components/page-shell';
 
 const MENU_ITEMS = [
@@ -16,6 +16,12 @@ const MENU_ITEMS = [
     title: 'Workspaces',
     description: 'Organize ambientes e membros',
     icon: Building2,
+  },
+  {
+    href: '/settings',
+    title: 'Configurações',
+    description: 'Perfil, senha, moeda e privacidade',
+    icon: Settings,
   },
 ] as const;
 

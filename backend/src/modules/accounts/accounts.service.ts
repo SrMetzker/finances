@@ -23,13 +23,15 @@ export class AccountsService {
 
   async update(workspaceId: string, id: string, dto: UpdateAccountDto) {
     const result = await this.accountsRepository.update(workspaceId, id, dto);
-    if (result.count === 0) throw new NotFoundException('Conta não encontrada.');
+    if (result.count === 0)
+      throw new NotFoundException('Conta não encontrada.');
     return this.findOne(workspaceId, id);
   }
 
   async remove(workspaceId: string, id: string) {
     const result = await this.accountsRepository.remove(workspaceId, id);
-    if (result.count === 0) throw new NotFoundException('Conta não encontrada.');
+    if (result.count === 0)
+      throw new NotFoundException('Conta não encontrada.');
     return { deleted: true };
   }
 }

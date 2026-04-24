@@ -7,6 +7,7 @@ import { useTransactions } from '@/hooks/use-transactions-api';
 import { useAccounts } from '@/hooks/use-accounts-api';
 import { useCards } from '@/hooks/use-cards-api';
 import { alphaHex, getIconComponent } from '@/lib/visual-options';
+import { formatCurrency } from '@/lib/currency';
 import { useAuth } from '@/services/auth.context';
 import {
   Eye,
@@ -18,14 +19,12 @@ import {
   Plus,
 } from 'lucide-react';
 
-const eur = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'EUR' });
-
 export default function DashboardPage() {
   const [showValues, setShowValues] = useState(true);
   const { transactions } = useTransactions();
   const { accounts, isLoading: accountsLoading } = useAccounts();
   const { cards } = useCards();
-  const { workspaceId, workspaces, setWorkspaceId } = useAuth();
+  const { workspaceId, workspace, workspaces, setWorkspaceId } = useAuth();
 
   const totalBalance = accounts.reduce((s, a) => s + Number(a.currentBalance), 0);
   const totalIncome = transactions.filter((t) => t.type === 'ENTRADA').reduce(
@@ -37,7 +36,8 @@ export default function DashboardPage() {
     0,
   );
 
-  const money = (value: number) => (showValues ? eur.format(value) : '••••');
+  const money = (value: number) =>
+    showValues ? formatCurrency(value, workspace?.currency ?? 'EUR') : '••••';
 
   return (
     <PageShell

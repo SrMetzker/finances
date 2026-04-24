@@ -1,4 +1,9 @@
-import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { WorkspaceAccessGuard } from './common/guards/workspace-access.guard';
 import { WorkspaceMiddleware } from './common/middleware/workspace.middleware';

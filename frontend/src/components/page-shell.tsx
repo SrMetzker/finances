@@ -14,6 +14,7 @@ import {
   Repeat,
   Plus,
   LogOut,
+  Settings,
 } from 'lucide-react';
 import { type ReactNode, useMemo, useState } from 'react';
 import { QuickActionsMenu, type QuickActionItem } from '@/components/quick-actions-menu';
@@ -86,7 +87,12 @@ export function PageShell({
 
   function isBottomNavItemActive(href: string) {
     if (href === '/more') {
-      return pathname === '/more' || pathname.startsWith('/accounts') || pathname.startsWith('/workspaces');
+      return (
+        pathname === '/more' ||
+        pathname.startsWith('/accounts') ||
+        pathname.startsWith('/workspaces') ||
+        pathname.startsWith('/settings')
+      );
     }
 
     return pathname === href;
@@ -154,11 +160,28 @@ export function PageShell({
               className="h-9 w-9 rounded-full bg-zinc-600 overflow-hidden flex items-center justify-center text-xs font-bold"
               aria-label="Abrir menu do usuário"
             >
-              {user?.name.charAt(0).toUpperCase() || 'U'}
+              {user?.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={user.avatarUrl}
+                  alt="Avatar do usuário"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                user?.name.charAt(0).toUpperCase() || 'U'
+              )}
             </button>
 
             {showUserMenu && (
               <div className="absolute left-0 top-11 z-50 min-w-40 rounded-lg border border-zinc-700 bg-[#1e2235] p-1 shadow-xl">
+                <Link
+                  href="/settings"
+                  onClick={() => setShowUserMenu(false)}
+                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/40"
+                >
+                  <Settings size={14} />
+                  Configurações
+                </Link>
                 <button
                   type="button"
                   onClick={handleLogout}

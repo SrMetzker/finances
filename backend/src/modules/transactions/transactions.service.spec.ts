@@ -1,5 +1,6 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
+import type { TransactionsRepository } from './transactions.repository';
 
 const mockRepo = {
   create: jest.fn(),
@@ -9,7 +10,9 @@ const mockRepo = {
   remove: jest.fn(),
 };
 
-const service = new TransactionsService(mockRepo as any);
+const service = new TransactionsService(
+  mockRepo as unknown as TransactionsRepository,
+);
 
 beforeEach(() => jest.clearAllMocks());
 

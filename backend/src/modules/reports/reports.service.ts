@@ -49,7 +49,11 @@ export class ReportsService {
             _sum: { amount: true },
           }),
           this.prisma.transaction.aggregate({
-            where: { workspaceId, accountId: account.id, type: 'TRANSFERENCIA' },
+            where: {
+              workspaceId,
+              accountId: account.id,
+              type: 'TRANSFERENCIA',
+            },
             _sum: { amount: true },
           }),
           this.prisma.transaction.aggregate({

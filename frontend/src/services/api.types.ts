@@ -62,11 +62,27 @@ export type User = {
   id: string;
   name: string;
   email: string;
+  avatarUrl?: string | null;
+};
+
+export type UpdateProfileDto = {
+  name?: string;
+  avatarUrl?: string;
+};
+
+export type ChangePasswordDto = {
+  currentPassword: string;
+  newPassword: string;
+};
+
+export type DeleteAccountDto = {
+  password: string;
 };
 
 export type Workspace = {
   id: string;
   name: string;
+  currency: 'EUR' | 'USD' | 'BRL' | 'GBP';
   createdAt: string;
   updatedAt: string;
 };
@@ -121,6 +137,7 @@ export type CreateCategoryDto = {
 
 export type CreateWorkspaceDto = {
   name: string;
+  currency?: 'EUR' | 'USD' | 'BRL' | 'GBP';
 };
 
 export type UpdateWorkspaceDto = Partial<CreateWorkspaceDto>;

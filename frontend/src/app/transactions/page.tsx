@@ -1,19 +1,21 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import { MobileListItem } from '@/components/mobile-list-item';
 import { PageShell } from '@/components/page-shell';
+import { TransactionDetailsModal } from '@/components/transaction-details-modal';
 import { useMonthFilter } from '@/hooks/use-month-filter';
 import { useTransactions } from '@/hooks/use-transactions-api';
 import { useAccounts } from '@/hooks/use-accounts-api';
+import { formatCurrency } from '@/lib/currency';
 import { alphaHex, getIconComponent } from '@/lib/visual-options';
+import { useAuth } from '@/services/auth.context';
 import {
   ChevronLeft,
   ChevronRight,
   Lock,
   Wallet,
 } from 'lucide-react';
-
-const eur = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'EUR' });
 
 const MONTH_NAMES = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -28,13 +30,22 @@ const TYPE_COLOR: Record<string, string> = {
 
 export default function TransactionsPage() {
   const { month, setMonth, parsed } = useMonthFilter(new Date('2026-04-01'));
-  const { transactions } = useTransactions(parsed.month, parsed.year);
+  const { transactions, updateTransaction, deleteTransaction } = useTransactions(parsed.month, parsed.year);
   const { accounts } = useAccounts();
+  const { workspace } = useAuth();
+  const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
+  const money = (value: number) => formatCurrency(value, workspace?.currency ?? 'EUR');
+
 
   const filtered = transactions.filter((tx) => {
     const [y, m] = tx.date.split('-');
     return Number(y) === parsed.year && Number(m) === parsed.month;
   });
+
+  const selectedTransaction = useMemo(
+    () => filtered.find((transaction) => transaction.id === selectedTransactionId) ?? null,
+    [filtered, selectedTransactionId],
+  );
 
   const totalBalance = accounts.reduce((s, a) => s + a.currentBalance, 0);
   const monthlyBalance = filtered.reduce((s, tx) => {
@@ -74,7 +85,7 @@ export default function TransactionsPage() {
           <Lock size={16} className="text-green-400" />
           <div>
             <p className="text-xs text-zinc-400">Saldo atual</p>
-            <p className="font-bold text-green-400">{eur.format(totalBalance)}</p>
+            <p className="font-bold text-green-400">{money(totalBalance)}</p>
           </div>
         </div>
         <div className="w-px h-8 bg-zinc-700" />
@@ -83,7 +94,7 @@ export default function TransactionsPage() {
           <div>
             <p className="text-xs text-zinc-400">Balanço mensal</p>
             <p className={`font-bold ${monthlyBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-              {eur.format(monthlyBalance)}
+              {money(monthlyBalance)}
             </p>
           </div>
         </div>
@@ -111,6 +122,7 @@ export default function TransactionsPage() {
             return (
               <MobileListItem
                 key={tx.id}
+                onClick={() => setSelectedTransactionId(tx.id)}
                 leading={
                   <div
                     className="h-10 w-10 rounded-full border flex items-center justify-center"
@@ -127,7 +139,7 @@ export default function TransactionsPage() {
                 value={
                   <>
                     {tx.type === 'SAIDA' ? '-' : '+'}
-                    {eur.format(tx.amount)}
+                    {money(tx.amount)}
                   </>
                 }
                 valueClassName={TYPE_COLOR[tx.type]}
@@ -136,6 +148,21 @@ export default function TransactionsPage() {
             );
           })}
         </ul>
+      )}
+
+      {selectedTransaction && (
+        <TransactionDetailsModal
+          key={selectedTransaction.id}
+          transaction={selectedTransaction}
+          isOpen
+          onClose={() => setSelectedTransactionId(null)}
+          onSave={async (id, input) => {
+            await updateTransaction(id, input);
+          }}
+          onDelete={async (id) => {
+            await deleteTransaction(id);
+          }}
+        />
       )}
     </PageShell>
   );

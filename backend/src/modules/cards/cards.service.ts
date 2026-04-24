@@ -23,13 +23,15 @@ export class CardsService {
 
   async update(workspaceId: string, id: string, dto: UpdateCardDto) {
     const result = await this.cardsRepository.update(workspaceId, id, dto);
-    if (result.count === 0) throw new NotFoundException('Cartão não encontrado.');
+    if (result.count === 0)
+      throw new NotFoundException('Cartão não encontrado.');
     return this.findOne(workspaceId, id);
   }
 
   async remove(workspaceId: string, id: string) {
     const result = await this.cardsRepository.remove(workspaceId, id);
-    if (result.count === 0) throw new NotFoundException('Cartão não encontrado.');
+    if (result.count === 0)
+      throw new NotFoundException('Cartão não encontrado.');
     return { deleted: true };
   }
 }

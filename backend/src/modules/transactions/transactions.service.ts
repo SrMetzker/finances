@@ -46,13 +46,17 @@ export class TransactionsService {
       ...dto,
       date: dto.date ? new Date(dto.date) : undefined,
     });
-    if (result.count === 0) throw new NotFoundException('Transação não encontrada.');
+    if (result.count === 0) {
+      throw new NotFoundException('Transação não encontrada.');
+    }
     return this.findOne(workspaceId, id);
   }
 
   async remove(workspaceId: string, id: string) {
     const result = await this.repo.remove(workspaceId, id);
-    if (result.count === 0) throw new NotFoundException('Transação não encontrada.');
+    if (result.count === 0) {
+      throw new NotFoundException('Transação não encontrada.');
+    }
     return { deleted: true };
   }
 
@@ -68,7 +72,9 @@ export class TransactionsService {
       );
     }
     if (destinationAccountId === accountId) {
-      throw new BadRequestException('Conta de origem e destino devem ser diferentes.');
+      throw new BadRequestException(
+        'Conta de origem e destino devem ser diferentes.',
+      );
     }
   }
 }

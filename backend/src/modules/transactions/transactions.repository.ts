@@ -64,11 +64,20 @@ export class TransactionsRepository {
   findById(workspaceId: string, id: string) {
     return this.prisma.transaction.findFirst({
       where: { id, workspaceId },
-      include: { tags: true, account: true, destinationAccount: true, category: true },
+      include: {
+        tags: true,
+        account: true,
+        destinationAccount: true,
+        category: true,
+      },
     });
   }
 
-  async update(workspaceId: string, id: string, data: Partial<TransactionInput>) {
+  async update(
+    workspaceId: string,
+    id: string,
+    data: Partial<TransactionInput>,
+  ) {
     const { tags, ...rest } = data;
     return this.prisma.$transaction(async (trx) => {
       if (tags !== undefined) {

@@ -7,6 +7,7 @@ export function MobileListItem({
   value,
   valueClassName,
   trailing,
+  onClick,
 }: {
   leading: ReactNode;
   title: string;
@@ -14,9 +15,10 @@ export function MobileListItem({
   value?: ReactNode;
   valueClassName?: string;
   trailing?: ReactNode;
+  onClick?: () => void;
 }) {
-  return (
-    <li className="flex items-center justify-between rounded-2xl bg-[#1e2235] px-4 py-3">
+  const content = (
+    <>
       <div className="flex items-center gap-3">
         {leading}
         <div>
@@ -30,6 +32,22 @@ export function MobileListItem({
         )}
         {trailing}
       </div>
+    </>
+  );
+
+  return (
+    <li className="rounded-2xl bg-[#1e2235]">
+      {onClick ? (
+        <button
+          type="button"
+          onClick={onClick}
+          className="flex w-full items-center justify-between px-4 py-3 text-left"
+        >
+          {content}
+        </button>
+      ) : (
+        <div className="flex items-center justify-between px-4 py-3">{content}</div>
+      )}
     </li>
   );
 }
