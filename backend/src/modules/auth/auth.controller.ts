@@ -7,6 +7,16 @@ import { RegisterDto } from './dto/register.dto';
 const AUTH_COOKIE_NAME = 'auth_token';
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
+function getCookieOptions() {
+  const isProd = process.env.NODE_ENV === 'production';
+  return {
+    httpOnly: true,
+    sameSite: isProd ? ('none' as const) : ('lax' as const),
+    secure: isProd,
+    path: '/',
+  };
+}
+
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -18,10 +28,7 @@ export class AuthController {
   ) {
     const payload = await this.authService.register(dto);
     res.cookie(AUTH_COOKIE_NAME, payload.accessToken, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
+      ...getCookieOptions(),
       maxAge: ONE_DAY_MS,
     });
     return payload;
@@ -34,10 +41,7 @@ export class AuthController {
   ) {
     const payload = await this.authService.login(dto);
     res.cookie(AUTH_COOKIE_NAME, payload.accessToken, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
+      ...getCookieOptions(),
       maxAge: ONE_DAY_MS,
     });
     return payload;
@@ -45,12 +49,7 @@ export class AuthController {
 
   @Post('logout')
   logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie(AUTH_COOKIE_NAME, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
-    });
+    res.clearCookie(AUTH_COOKIE_NAME, getCookieOptions());
 
     return { ok: true };
   }
