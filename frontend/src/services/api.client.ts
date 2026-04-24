@@ -11,26 +11,11 @@ import type {
   CreateCategoryDto,
   AuthResponse,
   RegisterDto,
+  CreateWorkspaceDto,
+  UpdateWorkspaceDto,
 } from './api.types';
 
-const DEFAULT_API_URL = 'http://localhost:3001/api';
-
-function normalizeApiUrl(rawUrl?: string) {
-  const candidate = (rawUrl || DEFAULT_API_URL).trim();
-
-  if (/^https?:\/\//i.test(candidate)) {
-    return candidate.replace(/\/+$/, '');
-  }
-
-  // If protocol is missing, assume https in production-like hosts.
-  if (/^localhost(:\d+)?(\/|$)/i.test(candidate)) {
-    return `http://${candidate}`.replace(/\/+$/, '');
-  }
-
-  return `https://${candidate}`.replace(/\/+$/, '');
-}
-
-const API_URL = normalizeApiUrl(process.env.NEXT_PUBLIC_API_URL);
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 class ApiClient {
   private token: string | null = null;
@@ -48,9 +33,15 @@ class ApiClient {
     localStorage.setItem('auth_token', token);
   }
 
-  setWorkspaceId(id: string) {
+  setWorkspaceId(id: string | null) {
     this.workspaceId = id;
-    localStorage.setItem('workspace_id', id);
+
+    if (id) {
+      localStorage.setItem('workspace_id', id);
+      return;
+    }
+
+    localStorage.removeItem('workspace_id');
   }
 
   getToken() {
@@ -121,6 +112,14 @@ class ApiClient {
   // Workspaces endpoints
   getWorkspaces() {
     return this.request<Workspace[]>('GET', '/workspaces');
+  }
+
+  createWorkspace(data: CreateWorkspaceDto) {
+    return this.request<Workspace>('POST', '/workspaces', data);
+  }
+
+  updateWorkspace(id: string, data: UpdateWorkspaceDto) {
+    return this.request<Workspace>('PATCH', `/workspaces/${id}`, data);
   }
 
   // Accounts endpoints

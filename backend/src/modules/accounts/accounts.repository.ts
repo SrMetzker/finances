@@ -54,15 +54,30 @@ export class AccountsRepository {
       accounts.map(async (account) => {
         const [income, expense, transferOut, transferIn] = await Promise.all([
           this.prisma.transaction.aggregate({
-            where: { workspaceId, accountId: account.id, type: 'ENTRADA' },
+            where: {
+              workspaceId,
+              accountId: account.id,
+              type: 'ENTRADA',
+              isPaid: true,
+            },
             _sum: { amount: true },
           }),
           this.prisma.transaction.aggregate({
-            where: { workspaceId, accountId: account.id, type: 'SAIDA' },
+            where: {
+              workspaceId,
+              accountId: account.id,
+              type: 'SAIDA',
+              isPaid: true,
+            },
             _sum: { amount: true },
           }),
           this.prisma.transaction.aggregate({
-            where: { workspaceId, accountId: account.id, type: 'TRANSFERENCIA' },
+            where: {
+              workspaceId,
+              accountId: account.id,
+              type: 'TRANSFERENCIA',
+              isPaid: true,
+            },
             _sum: { amount: true },
           }),
           this.prisma.transaction.aggregate({
@@ -70,6 +85,7 @@ export class AccountsRepository {
               workspaceId,
               destinationAccountId: account.id,
               type: 'TRANSFERENCIA',
+              isPaid: true,
             },
             _sum: { amount: true },
           }),

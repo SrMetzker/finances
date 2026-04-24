@@ -6,6 +6,7 @@ import { PageShell } from '@/components/page-shell';
 import { useTransactions } from '@/hooks/use-transactions-api';
 import { useAccounts } from '@/hooks/use-accounts-api';
 import { useCards } from '@/hooks/use-cards-api';
+import { alphaHex, getIconComponent } from '@/lib/visual-options';
 import { useAuth } from '@/services/auth.context';
 import {
   Eye,
@@ -24,7 +25,7 @@ export default function DashboardPage() {
   const { transactions } = useTransactions();
   const { accounts, isLoading: accountsLoading } = useAccounts();
   const { cards } = useCards();
-  const { user } = useAuth();
+  const { workspaceId, workspaces, setWorkspaceId } = useAuth();
 
   const totalBalance = accounts.reduce((s, a) => s + Number(a.currentBalance), 0);
   const totalIncome = transactions.filter((t) => t.type === 'ENTRADA').reduce(
@@ -39,7 +40,25 @@ export default function DashboardPage() {
   const money = (value: number) => (showValues ? eur.format(value) : '••••');
 
   return (
-    <PageShell title={`Olá, ${user?.name}!`}>
+    <PageShell
+      title={
+        <label className="block w-full max-w-56">
+          <span className="sr-only">Selecionar workspace</span>
+          <select
+            value={workspaceId ?? ''}
+            onChange={(event) => setWorkspaceId(event.target.value)}
+            className="w-full appearance-none rounded-full border border-zinc-700 bg-[#1e2235] px-4 py-2 text-center text-sm font-semibold text-zinc-100 outline-none transition focus:border-zinc-500"
+            aria-label="Selecionar workspace"
+          >
+            {workspaces.map((workspace) => (
+              <option key={workspace.id} value={workspace.id}>
+                {workspace.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      }
+    >
       {/* balance header */}
       <div className="px-4 pt-6 pb-7 text-center">
         <p className="text-sm text-zinc-400 mb-1">Saldo em contas</p>
@@ -88,27 +107,37 @@ export default function DashboardPage() {
           <LayoutGrid size={18} className="text-zinc-400" />
         </div>
         <ul>
-          {accounts.map((a, i) => (
+          {accounts.map((account, i) => {
+            const AccountIcon = getIconComponent(account.icon);
+
+            return (
             <li
-              key={a.id}
+              key={account.id}
               className={`flex items-center justify-between py-3 ${
                 i < accounts.length - 1 ? 'border-b border-zinc-700/40' : ''
               }`}
             >
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-lg">
-                  🏦
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-full border"
+                  style={{
+                    backgroundColor: alphaHex(account.color, '22'),
+                    borderColor: alphaHex(account.color, '66'),
+                  }}
+                >
+                  <AccountIcon size={16} style={{ color: account.color }} />
                 </div>
                 <div>
-                  <p className="font-medium text-sm">{a.name}</p>
-                  <p className="text-sm text-green-400">{money(Number(a.currentBalance))}</p>
+                  <p className="font-medium text-sm">{account.name}</p>
+                  <p className="text-sm text-green-400">{money(Number(account.currentBalance))}</p>
                 </div>
               </div>
               <button className="text-purple-400 font-light" aria-label="Adicionar">
                 <Plus size={20} />
               </button>
             </li>
-          ))}
+            );
+          })}
         </ul>
         <div className="border-t border-zinc-700/40 mt-1 pt-3 flex justify-between text-sm font-semibold">
           <span>Total</span>

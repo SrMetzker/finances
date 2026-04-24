@@ -22,6 +22,25 @@ export class WorkspacesRepository {
     });
   }
 
+  findByIdForUser(userId: string, workspaceId: string) {
+    return this.prisma.workspace.findFirst({
+      where: {
+        id: workspaceId,
+        members: { some: { userId } },
+      },
+    });
+  }
+
+  updateForUser(userId: string, workspaceId: string, data: { name?: string }) {
+    return this.prisma.workspace.updateMany({
+      where: {
+        id: workspaceId,
+        members: { some: { userId } },
+      },
+      data,
+    });
+  }
+
   addMember(workspaceId: string, userId: string) {
     return this.prisma.workspaceMember.upsert({
       where: { userId_workspaceId: { userId, workspaceId } },

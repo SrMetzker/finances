@@ -20,14 +20,14 @@ import { QuickActionsMenu, type QuickActionItem } from '@/components/quick-actio
 import { NewTransactionModal } from '@/components/new-transaction-modal';
 import { useTransactions } from '@/hooks/use-transactions-api';
 import { useAuth } from '@/services/auth.context';
-import type { TransactionType } from '@/services/api.types';
+import type { CreateTransactionDto, TransactionType } from '@/services/api.types';
 
 const BOTTOM_NAV = [
   { href: '/dashboard', label: 'Principal', icon: Home },
   { href: '/transactions', label: 'Transações', icon: AlignJustify },
   null,
   { href: '/categories', label: 'Categorias', icon: PieChart },
-  { href: '/accounts', label: 'Mais', icon: MoreHorizontal },
+  { href: '/more', label: 'Mais', icon: MoreHorizontal },
 ] as const;
 
 const QUICK_ACTIONS: QuickActionItem[] = [
@@ -59,7 +59,7 @@ export function PageShell({
   onHeaderAdd,
   children,
 }: {
-  title: string;
+  title: ReactNode;
   backHref?: string;
   headerRight?: ReactNode;
   hideBottomNav?: boolean;
@@ -76,9 +76,21 @@ export function PageShell({
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   const shouldShowHeaderAdd = useMemo(
-    () => pathname === '/transactions' || pathname === '/accounts' || pathname === '/categories',
+    () =>
+      pathname === '/transactions' ||
+      pathname === '/accounts' ||
+      pathname === '/categories' ||
+      pathname === '/workspaces',
     [pathname],
   );
+
+  function isBottomNavItemActive(href: string) {
+    if (href === '/more') {
+      return pathname === '/more' || pathname.startsWith('/accounts') || pathname.startsWith('/workspaces');
+    }
+
+    return pathname === href;
+  }
 
   function toggleQuickActions() {
     setShowQuickActions((v) => !v);
@@ -100,7 +112,7 @@ export function PageShell({
     setShowNewTransactionModal(true);
   }
 
-  const handleCreateTransaction = async (payload: any) => {
+  const handleCreateTransaction = async (payload: CreateTransactionDto) => {
     await createTransaction(payload);
   };
 
@@ -160,10 +172,14 @@ export function PageShell({
           </div>
         )}
 
-        <button className="flex items-center gap-1 font-semibold text-base">
-          {title}
-          {!backHref && <ChevronDown size={16} className="text-zinc-400" />}
-        </button>
+        {typeof title === 'string' ? (
+          <button className="flex items-center gap-1 font-semibold text-base">
+            {title}
+            {!backHref && <ChevronDown size={16} className="text-zinc-400" />}
+          </button>
+        ) : (
+          <div className="flex flex-1 justify-center px-3">{title}</div>
+        )}
 
         {headerRight !== undefined ? (
           headerRight
@@ -190,7 +206,7 @@ export function PageShell({
       {/* bottom nav */}
       {!hideBottomNav && (
         <nav className="fixed bottom-0 left-0 right-0 flex items-end h-16 bg-[#161825] border-t border-zinc-800/60">
-          {BOTTOM_NAV.map((item, i) =>
+          {BOTTOM_NAV.map((item) =>
             item === null ? (
               <QuickActionsMenu
                 key="fab"
@@ -204,7 +220,7 @@ export function PageShell({
                 key={item.href}
                 href={item.href}
                 className={`flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] transition-colors ${
-                  pathname === item.href ? 'text-purple-400' : 'text-zinc-500'
+                  isBottomNavItemActive(item.href) ? 'text-purple-400' : 'text-zinc-500'
                 }`}
               >
                 <item.icon size={20} />

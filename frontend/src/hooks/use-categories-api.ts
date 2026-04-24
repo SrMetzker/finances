@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { apiClient } from '@/services/api.client';
+import { WORKSPACE_CHANGED_EVENT } from '@/services/auth.context';
 import type { Category, CreateCategoryDto } from '@/services/api.types';
 
 export function useCategories() {
@@ -23,7 +24,25 @@ export function useCategories() {
   }, []);
 
   useEffect(() => {
-    fetchCategories();
+    const timeoutId = window.setTimeout(() => {
+      void fetchCategories();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [fetchCategories]);
+
+  useEffect(() => {
+    const handleWorkspaceChanged = () => {
+      void fetchCategories();
+    };
+
+    window.addEventListener(WORKSPACE_CHANGED_EVENT, handleWorkspaceChanged);
+
+    return () => {
+      window.removeEventListener(WORKSPACE_CHANGED_EVENT, handleWorkspaceChanged);
+    };
   }, [fetchCategories]);
 
   const createCategory = useCallback(async (input: CreateCategoryDto) => {
