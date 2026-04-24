@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const AUTH_COOKIE_NAME = 'auth_token';
+const AUTH_COOKIE_NAME = 'finances_session';
 
 function isAuthRoute(pathname: string) {
   return pathname.startsWith('/auth');
@@ -53,5 +53,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };

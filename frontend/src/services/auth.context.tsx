@@ -31,6 +31,26 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const WORKSPACE_CHANGED_EVENT = 'finances:workspace-changed';
 const AUTH_EXPIRED_EVENT = 'finances:auth-expired';
 
+async function persistFrontendSession(token: string) {
+  const response = await fetch('/api/session', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ token }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Falha ao persistir sessão no frontend.');
+  }
+}
+
+async function clearFrontendSession() {
+  await fetch('/api/session', {
+    method: 'DELETE',
+  });
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
@@ -97,6 +117,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         })
         .catch(() => {
           // Sessao invalida/expirada: limpamos o estado local.
+          void clearFrontendSession().catch(() => {
+            // Ignora falha de limpeza de cookie de sessao local.
+          });
           localStorage.removeItem('workspace_id');
           localStorage.removeItem('workspace');
           apiClient.clearAuth();
@@ -118,6 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       const response = await apiClient.login(email, password);
+      await persistFrontendSession(response.accessToken);
       setUser(response.user);
       await syncWorkspaces(response.workspace?.id ?? null, response.workspace ?? null);
     } finally {
@@ -129,6 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       const response = await apiClient.register(input);
+      await persistFrontendSession(response.accessToken);
       setUser(response.user);
 
       await syncWorkspaces(response.workspace?.id ?? null, response.workspace ?? null);
@@ -140,6 +165,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     void apiClient.logout().catch(() => {
       // Mesmo com erro no backend, limpamos o estado local.
+    });
+    void clearFrontendSession().catch(() => {
+      // Mesmo com erro na rota interna, limpamos o estado local.
     });
     apiClient.clearAuth();
     setUser(null);
