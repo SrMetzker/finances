@@ -1,7 +1,7 @@
 'use client';
 
-import { ChangeEvent, FormEvent, useState } from 'react';
-import { Camera, Loader2, Save } from 'lucide-react';
+import { ChangeEvent, FormEvent, useRef, useState } from 'react';
+import { Camera, Loader2, Save, Trash2 } from 'lucide-react';
 import { PageShell } from '@/components/page-shell';
 import { apiClient } from '@/services/api.client';
 import { useAuth } from '@/services/auth.context';
@@ -12,6 +12,10 @@ const CURRENCY_OPTIONS = [
   { code: 'BRL', label: 'Real (BRL)' },
   { code: 'GBP', label: 'Libra (GBP)' },
 ] as const;
+
+const AVATAR_MAX_DIMENSION = 512;
+const AVATAR_JPEG_QUALITY = 0.82;
+const MAX_AVATAR_BASE64_LENGTH = 2_500_000;
 
 function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -28,11 +32,50 @@ function readFileAsDataUrl(file: File): Promise<string> {
   });
 }
 
+function loadImageFromDataUrl(dataUrl: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error('Falha ao abrir imagem selecionada.'));
+    image.src = dataUrl;
+  });
+}
+
+async function compressAvatarImage(file: File): Promise<string> {
+  const originalDataUrl = await readFileAsDataUrl(file);
+  const image = await loadImageFromDataUrl(originalDataUrl);
+
+  const ratio = Math.min(
+    1,
+    AVATAR_MAX_DIMENSION / Math.max(image.naturalWidth, image.naturalHeight),
+  );
+  const width = Math.max(1, Math.round(image.naturalWidth * ratio));
+  const height = Math.max(1, Math.round(image.naturalHeight * ratio));
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+
+  const context = canvas.getContext('2d');
+  if (!context) {
+    throw new Error('Não foi possível processar a imagem.');
+  }
+
+  context.drawImage(image, 0, 0, width, height);
+
+  const compressedDataUrl = canvas.toDataURL('image/jpeg', AVATAR_JPEG_QUALITY);
+  return compressedDataUrl.length < originalDataUrl.length
+    ? compressedDataUrl
+    : originalDataUrl;
+}
+
 export default function ProfileSettingsPage() {
   const { user, workspace, updateProfile, refreshUser, refreshWorkspaces } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [name, setName] = useState(user?.name ?? '');
   const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl ?? '');
+  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
   const [currency, setCurrency] = useState<'EUR' | 'USD' | 'BRL' | 'GBP'>(
     workspace?.currency ?? 'EUR',
   );
@@ -52,13 +95,29 @@ export default function ProfileSettingsPage() {
     try {
       if (!file.type.startsWith('image/')) throw new Error('Selecione um arquivo de imagem válido.');
       if (file.size > 2 * 1024 * 1024) throw new Error('A imagem deve ter no máximo 2MB.');
-      const dataUrl = await readFileAsDataUrl(file);
+      const dataUrl = await compressAvatarImage(file);
+      if (dataUrl.length > MAX_AVATAR_BASE64_LENGTH) {
+        throw new Error('A imagem ainda ficou grande demais. Tente outra foto com menor resolução.');
+      }
       setAvatarUrl(dataUrl);
+      setSelectedFileName(file.name);
+      setMessage('Foto pronta para salvar no perfil (otimizada automaticamente).');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar imagem.');
     } finally {
       event.target.value = '';
     }
+  }
+
+  function handleChooseFile() {
+    fileInputRef.current?.click();
+  }
+
+  function handleRemovePhoto() {
+    setAvatarUrl('');
+    setSelectedFileName(null);
+    setMessage('Foto removida. Clique em "Salvar perfil" para confirmar.');
+    setError(null);
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -80,6 +139,7 @@ export default function ProfileSettingsPage() {
       }
 
       await refreshUser();
+      setSelectedFileName(null);
       setMessage('Perfil atualizado com sucesso.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao atualizar perfil.');
@@ -105,23 +165,42 @@ export default function ProfileSettingsPage() {
                   </span>
                 )}
               </div>
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-100 hover:bg-zinc-700/40">
-                <Camera size={16} />
-                Trocar foto
-                <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-              </label>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={handleChooseFile}
+                  className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-100 hover:bg-zinc-700/40"
+                >
+                  <Camera size={16} />
+                  {avatarPreview ? 'Trocar foto' : 'Adicionar foto'}
+                </button>
+
+                {avatarPreview && (
+                  <button
+                    type="button"
+                    onClick={handleRemovePhoto}
+                    className="inline-flex items-center gap-2 rounded-lg border border-red-800/70 px-3 py-2 text-sm text-red-300 hover:bg-red-900/20"
+                  >
+                    <Trash2 size={16} />
+                    Remover foto
+                  </button>
+                )}
+              </div>
             </div>
 
-            <div>
-              <label className="mb-1 block text-xs text-zinc-400">URL da foto (opcional)</label>
-              <input
-                type="url"
-                value={avatarUrl}
-                onChange={(e) => setAvatarUrl(e.target.value)}
-                placeholder="https://..."
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-500"
-              />
-            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <p className="text-xs text-zinc-400">
+              Use uma imagem JPG, PNG ou WEBP de até 2MB. A foto será otimizada automaticamente.
+            </p>
+            {selectedFileName && (
+              <p className="text-xs text-zinc-500">Arquivo selecionado: {selectedFileName}</p>
+            )}
           </div>
 
           {/* Nome */}
