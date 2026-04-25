@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ChevronRight, KeyRound, ShieldAlert, UserCircle2 } from 'lucide-react';
+import { BriefcaseBusiness, ChevronRight, KeyRound, ShieldAlert, UserCircle2 } from 'lucide-react';
 import { PageShell } from '@/components/page-shell';
 import { useAuth } from '@/services/auth.context';
 
@@ -10,8 +10,15 @@ const MENU_ITEMS = [
     href: '/settings/profile',
     icon: UserCircle2,
     label: 'Perfil',
-    description: 'Nome, foto e moeda do workspace',
+    description: 'Nome e foto do perfil',
     iconClass: 'text-purple-400',
+  },
+  {
+    href: '/settings/workspace',
+    icon: BriefcaseBusiness,
+    label: 'Workspace',
+    description: 'Nome e moeda do workspace ativo',
+    iconClass: 'text-amber-400',
   },
   {
     href: '/settings/password',
