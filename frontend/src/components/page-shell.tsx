@@ -36,7 +36,7 @@ const QUICK_ACTIONS: QuickActionItem[] = [
     id: 'transferencia',
     label: 'Transferencia',
     icon: Repeat,
-    iconClassName: 'text-purple-400',
+    iconClassName: 'text-lime-300',
   },
   {
     id: 'receita',
@@ -143,9 +143,9 @@ export function PageShell({
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#0f1117] text-white">
+    <div className="brand-grid flex min-h-screen flex-col text-[var(--text)]">
       {/* top bar */}
-      <header className="flex items-center justify-between px-4 py-3 bg-[#161825]">
+      <header className="brand-panel sticky top-0 z-30 flex items-center justify-between border-b border-white/5 px-4 py-3 backdrop-blur-xl">
         {backHref ? (
           <Link href={backHref} className="flex h-9 w-9 items-center justify-center">
             <ArrowLeft size={22} />
@@ -155,7 +155,7 @@ export function PageShell({
             <button
               type="button"
               onClick={handleAvatarClick}
-              className="h-9 w-9 rounded-full bg-zinc-600 overflow-hidden flex items-center justify-center text-xs font-bold"
+              className="brand-gradient brand-glow flex h-9 w-9 items-center justify-center overflow-hidden rounded-full text-xs font-bold"
               aria-label="Abrir menu do usuário"
             >
               {user?.avatarUrl ? (
@@ -171,11 +171,11 @@ export function PageShell({
             </button>
 
             {showUserMenu && (
-              <div className="absolute left-0 top-11 z-50 min-w-40 rounded-lg border border-zinc-700 bg-[#1e2235] p-1 shadow-xl">
+              <div className="brand-surface absolute left-0 top-11 z-50 min-w-44 rounded-2xl p-1.5">
                 <Link
                   href="/settings"
                   onClick={() => setShowUserMenu(false)}
-                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-700/40"
+                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-zinc-100 transition-colors hover:bg-white/6"
                 >
                   <Settings size={14} />
                   Configurações
@@ -183,7 +183,7 @@ export function PageShell({
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-red-300 hover:bg-zinc-700/40"
+                  className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-rose-300 transition-colors hover:bg-white/6"
                 >
                   <LogOut size={14} />
                   Logout
@@ -194,9 +194,9 @@ export function PageShell({
         )}
 
         {typeof title === 'string' ? (
-          <button className="flex items-center gap-1 font-semibold text-base">
+          <button className="flex items-center gap-1 text-base font-semibold tracking-[0.02em]">
             {title}
-            {!backHref && <ChevronDown size={16} className="text-zinc-400" />}
+            {!backHref && <ChevronDown size={16} className="text-lime-200/80" />}
           </button>
         ) : (
           <div className="flex flex-1 justify-center px-3">{title}</div>
@@ -210,7 +210,7 @@ export function PageShell({
           <button
             type="button"
             onClick={handleHeaderAddClick}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-purple-600 text-white hover:bg-purple-500"
+            className="brand-gradient brand-glow flex h-9 w-9 items-center justify-center rounded-full transition-transform hover:scale-[1.04]"
             aria-label="Adicionar"
           >
             <Plus size={18} />
@@ -226,7 +226,7 @@ export function PageShell({
 
       {/* bottom nav */}
       {!hideBottomNav && (
-        <nav className="fixed bottom-0 left-0 right-0 flex items-end h-16 bg-[#161825] border-t border-zinc-800/60">
+        <nav className="brand-panel fixed bottom-0 left-0 right-0 flex h-16 items-end border-t border-white/5 backdrop-blur-xl">
           {BOTTOM_NAV.map((item) =>
             item === null ? (
               <QuickActionsMenu
@@ -241,7 +241,7 @@ export function PageShell({
                 key={item.href}
                 href={item.href}
                 className={`flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] transition-colors ${
-                  isBottomNavItemActive(item.href) ? 'text-purple-400' : 'text-zinc-500'
+                  isBottomNavItemActive(item.href) ? 'text-lime-300' : 'text-zinc-500'
                 }`}
               >
                 <item.icon size={20} />

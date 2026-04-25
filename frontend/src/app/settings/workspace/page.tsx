@@ -76,7 +76,7 @@ export default function WorkspaceSettingsPage() {
     <PageShell title="Workspace" backHref="/settings">
       <div className="mx-4 my-4 pb-6">
         <form onSubmit={(event) => { void handleSubmit(event); }} className="space-y-4">
-          <div className="rounded-2xl border border-zinc-800 bg-[#1e2235] p-4">
+          <div className="brand-surface rounded-[1.75rem] p-4">
             <div className="mb-4 flex items-center gap-2">
               <BriefcaseBusiness size={18} className="text-amber-400" />
               <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-300">
@@ -90,7 +90,7 @@ export default function WorkspaceSettingsPage() {
                 type="text"
                 value={workspaceName}
                 onChange={(event) => updateDraft({ name: event.target.value })}
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-500"
+                className="brand-panel w-full rounded-2xl border border-white/8 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-lime-300"
                 disabled={!workspace?.id}
                 required
               />
@@ -101,7 +101,7 @@ export default function WorkspaceSettingsPage() {
               <select
                 value={currency}
                 onChange={(event) => updateDraft({ currency: event.target.value as 'EUR' | 'USD' | 'BRL' | 'GBP' })}
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-500"
+                className="brand-panel w-full rounded-2xl border border-white/8 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-lime-300"
                 disabled={!workspace?.id}
               >
                 {CURRENCY_OPTIONS.map((option) => (
@@ -129,7 +129,7 @@ export default function WorkspaceSettingsPage() {
           <button
             type="submit"
             disabled={isSaving || !workspace?.id}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-purple-600 px-4 py-3 text-sm font-semibold text-white disabled:opacity-60 hover:bg-purple-500"
+            className="brand-gradient inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold disabled:opacity-60 hover:scale-[1.01]"
           >
             {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
             Salvar workspace

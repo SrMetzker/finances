@@ -137,9 +137,9 @@ export default function ProfileSettingsPage() {
       <div className="mx-4 my-4 pb-6">
         <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-4">
           {/* Avatar */}
-          <div className="rounded-2xl border border-zinc-800 bg-[#1e2235] p-4 space-y-4">
+          <div className="brand-surface rounded-[1.75rem] p-4 space-y-4">
             <div className="flex items-center gap-4">
-              <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-zinc-700/50 flex-shrink-0">
+              <div className="brand-gradient flex h-20 w-20 items-center justify-center overflow-hidden rounded-full flex-shrink-0">
                 {avatarPreview ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={avatarPreview} alt="Avatar" className="h-full w-full object-cover" />
@@ -153,7 +153,7 @@ export default function ProfileSettingsPage() {
                 <button
                   type="button"
                   onClick={handleChooseFile}
-                  className="inline-flex items-center gap-2 rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-100 hover:bg-zinc-700/40"
+                  className="brand-panel inline-flex items-center gap-2 rounded-2xl border border-white/8 px-3 py-2 text-sm text-zinc-100 hover:bg-white/6"
                 >
                   <Camera size={16} />
                   {avatarPreview ? 'Trocar foto' : 'Adicionar foto'}
@@ -163,7 +163,7 @@ export default function ProfileSettingsPage() {
                   <button
                     type="button"
                     onClick={handleRemovePhoto}
-                    className="inline-flex items-center gap-2 rounded-lg border border-red-800/70 px-3 py-2 text-sm text-red-300 hover:bg-red-900/20"
+                    className="inline-flex items-center gap-2 rounded-2xl border border-red-800/70 px-3 py-2 text-sm text-red-300 hover:bg-red-900/20"
                   >
                     <Trash2 size={16} />
                     Remover foto
@@ -188,13 +188,13 @@ export default function ProfileSettingsPage() {
           </div>
 
           {/* Nome */}
-          <div className="rounded-2xl border border-zinc-800 bg-[#1e2235] p-4">
+          <div className="brand-surface rounded-[1.75rem] p-4">
             <label className="mb-1 block text-xs text-zinc-400">Nome</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-500"
+              className="brand-panel w-full rounded-2xl border border-white/8 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-lime-300"
               required
             />
           </div>
@@ -209,7 +209,7 @@ export default function ProfileSettingsPage() {
           <button
             type="submit"
             disabled={isSaving}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-purple-600 px-4 py-3 text-sm font-semibold text-white disabled:opacity-60 hover:bg-purple-500"
+            className="brand-gradient inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold disabled:opacity-60 hover:scale-[1.01]"
           >
             {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
             Salvar perfil

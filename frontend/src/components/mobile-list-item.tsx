@@ -36,12 +36,12 @@ export function MobileListItem({
   );
 
   return (
-    <li className="rounded-2xl bg-[#1e2235]">
+    <li className="brand-surface rounded-[1.5rem]">
       {onClick ? (
         <button
           type="button"
           onClick={onClick}
-          className="flex w-full items-center justify-between px-4 py-3 text-left"
+          className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-white/5"
         >
           {content}
         </button>

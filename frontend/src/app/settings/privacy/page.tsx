@@ -67,7 +67,7 @@ export default function PrivacySettingsPage() {
     <PageShell title="Privacidade e Conta" backHref="/settings">
       <div className="mx-4 my-4 space-y-4 pb-6">
         {/* Redefinir dados */}
-        <div className="rounded-2xl border border-zinc-800 bg-[#1e2235] p-4 space-y-3">
+        <div className="brand-surface rounded-[1.75rem] p-4 space-y-3">
           <div>
             <p className="text-sm font-medium text-zinc-100">Redefinir dados financeiros</p>
             <p className="text-xs text-zinc-500 mt-0.5">Remove todas as transações, contas, cartões e categorias, mantendo sua conta ativa.</p>
@@ -76,7 +76,7 @@ export default function PrivacySettingsPage() {
             type="button"
             onClick={() => void handleResetData()}
             disabled={isResetting}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-zinc-600 px-4 py-2.5 text-sm font-semibold text-zinc-100 disabled:opacity-60 hover:bg-zinc-700/30"
+            className="brand-panel inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/8 px-4 py-2.5 text-sm font-semibold text-zinc-100 disabled:opacity-60 hover:bg-white/6"
           >
             {isResetting ? <Loader2 size={16} className="animate-spin" /> : <Eraser size={16} />}
             Redefinir dados (manter conta)
@@ -84,7 +84,7 @@ export default function PrivacySettingsPage() {
         </div>
 
         {/* Excluir conta */}
-        <div className="rounded-2xl border border-red-900/60 bg-[#251823] p-4 space-y-3">
+        <div className="rounded-[1.75rem] border border-red-900/60 bg-[linear-gradient(180deg,rgba(61,29,29,0.92),rgba(42,23,23,0.96))] p-4 space-y-3 shadow-[0_18px_40px_rgba(0,0,0,0.24)]">
           <div>
             <p className="text-sm font-medium text-red-200">Excluir conta</p>
             <p className="text-xs text-red-300/70 mt-0.5">Ação irreversível. Todos os seus dados serão permanentemente removidos.</p>
@@ -94,13 +94,13 @@ export default function PrivacySettingsPage() {
             placeholder="Confirme sua senha"
             value={deletePassword}
             onChange={(e) => setDeletePassword(e.target.value)}
-            className="w-full rounded-lg border border-red-800/70 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-red-600"
+            className="w-full rounded-2xl border border-red-800/70 bg-black/20 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-red-500"
           />
           <button
             type="button"
             onClick={() => void handleDeleteAccount()}
             disabled={isDeleting}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60 hover:bg-red-500"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60 hover:bg-red-500"
           >
             {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
             Excluir conta
