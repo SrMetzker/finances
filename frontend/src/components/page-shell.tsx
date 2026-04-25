@@ -80,8 +80,7 @@ export function PageShell({
     () =>
       pathname === '/transactions' ||
       pathname === '/accounts' ||
-      pathname === '/categories' ||
-      pathname === '/workspaces',
+      pathname === '/categories',
     [pathname],
   );
 
@@ -90,7 +89,6 @@ export function PageShell({
       return (
         pathname === '/more' ||
         pathname.startsWith('/accounts') ||
-        pathname.startsWith('/workspaces') ||
         pathname.startsWith('/settings')
       );
     }

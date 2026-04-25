@@ -3,15 +3,7 @@
 import { ChangeEvent, FormEvent, useRef, useState } from 'react';
 import { Camera, Loader2, Save, Trash2 } from 'lucide-react';
 import { PageShell } from '@/components/page-shell';
-import { apiClient } from '@/services/api.client';
 import { useAuth } from '@/services/auth.context';
-
-const CURRENCY_OPTIONS = [
-  { code: 'EUR', label: 'Euro (EUR)' },
-  { code: 'USD', label: 'Dólar (USD)' },
-  { code: 'BRL', label: 'Real (BRL)' },
-  { code: 'GBP', label: 'Libra (GBP)' },
-] as const;
 
 const AVATAR_MAX_DIMENSION = 512;
 const AVATAR_JPEG_QUALITY = 0.82;
@@ -70,15 +62,12 @@ async function compressAvatarImage(file: File): Promise<string> {
 }
 
 export default function ProfileSettingsPage() {
-  const { user, workspace, updateProfile, refreshUser, refreshWorkspaces } = useAuth();
+  const { user, updateProfile, refreshUser } = useAuth();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [name, setName] = useState(user?.name ?? '');
   const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl ?? '');
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
-  const [currency, setCurrency] = useState<'EUR' | 'USD' | 'BRL' | 'GBP'>(
-    workspace?.currency ?? 'EUR',
-  );
 
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -132,11 +121,6 @@ export default function ProfileSettingsPage() {
         name: name.trim(),
         avatarUrl: avatarUrl.trim() || undefined,
       });
-
-      if (workspace?.id) {
-        await apiClient.updateWorkspace(workspace.id, { currency });
-        await refreshWorkspaces(workspace.id);
-      }
 
       await refreshUser();
       setSelectedFileName(null);
@@ -213,24 +197,6 @@ export default function ProfileSettingsPage() {
               className="w-full rounded-lg border border-zinc-700 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-500"
               required
             />
-          </div>
-
-          {/* Moeda do workspace */}
-          <div className="rounded-2xl border border-zinc-800 bg-[#1e2235] p-4">
-            <label className="mb-1 block text-xs text-zinc-400">Moeda do workspace</label>
-            <select
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value as typeof currency)}
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-500"
-              disabled={!workspace?.id}
-            >
-              {CURRENCY_OPTIONS.map((opt) => (
-                <option key={opt.code} value={opt.code}>{opt.label}</option>
-              ))}
-            </select>
-            {!workspace?.id && (
-              <p className="mt-1 text-xs text-zinc-500">Selecione um workspace para alterar a moeda.</p>
-            )}
           </div>
 
           {message && (
