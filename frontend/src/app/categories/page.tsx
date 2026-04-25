@@ -92,7 +92,7 @@ export default function CategoriesPage() {
 
   return (
     <PageShell title="Categorias" onHeaderAdd={openCreateModal}>
-      <div className="mx-4 mt-4 rounded-2xl bg-[#1e2235] divide-y divide-zinc-700/40">
+      <div className="brand-surface mx-4 mt-4 divide-y divide-white/6 rounded-[1.75rem]">
         {categories.map((cat) => (
           <div key={cat.id} className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-2">
@@ -120,7 +120,7 @@ export default function CategoriesPage() {
                     color: cat.color,
                   })
                 }
-                className="text-purple-400"
+                className="text-lime-300"
                 aria-label={`Editar categoria ${cat.name}`}
               >
                 <Pencil size={14} />
@@ -142,7 +142,7 @@ export default function CategoriesPage() {
             aria-label="Fechar modal"
           />
 
-          <div className="absolute inset-x-0 bottom-0 rounded-t-3xl bg-[#161825] p-6">
+          <div className="brand-panel absolute inset-x-0 bottom-0 rounded-t-3xl border border-white/6 p-6 shadow-2xl">
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-lg font-semibold">
                 {isEditing ? 'Editar categoria' : 'Nova categoria'}
@@ -164,7 +164,7 @@ export default function CategoriesPage() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 outline-none focus:border-purple-500"
+                  className="brand-panel w-full rounded-2xl border border-white/8 px-3 py-2 outline-none focus:border-lime-300"
                   placeholder="Ex.: Mercado"
                   required
                 />
@@ -175,7 +175,7 @@ export default function CategoriesPage() {
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value as CategoryType)}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 outline-none focus:border-purple-500"
+                  className="brand-panel w-full rounded-2xl border border-white/8 px-3 py-2 outline-none focus:border-lime-300"
                 >
                   <option value="ENTRADA">Entrada</option>
                   <option value="SAIDA">Saída</option>
@@ -193,7 +193,7 @@ export default function CategoriesPage() {
               <button
                 type="submit"
                 disabled={isSaving}
-                className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-purple-600 py-2.5 font-semibold text-white disabled:opacity-60"
+                className="brand-gradient mt-2 flex w-full items-center justify-center gap-2 rounded-2xl py-2.5 font-semibold disabled:opacity-60"
               >
                 {!isEditing && <Plus size={16} />}
                 {isSaving ? 'Salvando...' : isEditing ? 'Salvar alterações' : 'Criar categoria'}

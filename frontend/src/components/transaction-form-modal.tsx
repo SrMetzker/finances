@@ -313,14 +313,14 @@ export function TransactionFormModal({
       title={<h2 className="text-lg font-semibold">{title}</h2>}
       onClose={onClose}
       zIndexClassName="z-[85]"
-      panelClassName="max-h-[92vh] bg-[#161825]"
+      panelClassName="brand-panel max-h-[92vh] border border-white/6"
       closeAriaLabel="Fechar modal de transação"
       headerRight={
         mode === 'edit' && onDelete ? (
           <button
             type="button"
             onClick={() => setIsDeleteConfirmOpen(true)}
-            className="text-red-400 disabled:opacity-60"
+            className="text-rose-400 disabled:opacity-60"
             disabled={isSubmitting}
             aria-label="Excluir transação"
           >
@@ -330,7 +330,7 @@ export function TransactionFormModal({
       }
     >
       <form onSubmit={handleSubmit} className="pb-24">
-        <div className="flex items-center justify-between border-b border-zinc-800 px-6 py-5">
+        <div className="flex items-center justify-between border-b border-white/6 px-6 py-5">
           <div>
             <p className="mb-1 text-xs text-zinc-400">{TYPE_TEXT[type].amountLabel}</p>
             <input
@@ -358,7 +358,7 @@ export function TransactionFormModal({
               onClick={() => setPaid((current) => !current)}
               disabled={hasFutureDate}
               className={`relative h-6 w-12 overflow-hidden rounded-full transition-colors ${
-                paid ? 'bg-red-500' : 'bg-zinc-700'
+                paid ? 'brand-gradient' : 'bg-zinc-700'
               } ${hasFutureDate ? 'cursor-not-allowed opacity-60' : ''}`}
             >
               <span
@@ -380,7 +380,7 @@ export function TransactionFormModal({
                     type="button"
                     onClick={() => handleDateOptionChange(opt)}
                     className={`rounded-full px-4 py-1 text-sm font-medium transition-colors ${
-                      dateOption === opt ? 'bg-red-500 text-white' : 'bg-zinc-700 text-zinc-300'
+                      dateOption === opt ? 'brand-gradient' : 'brand-panel text-zinc-300'
                     }`}
                   >
                     {labels[opt]}
@@ -392,13 +392,13 @@ export function TransactionFormModal({
 
           {dateOption === 'other' && (
             <div className="px-5 pb-4">
-              <div className="ml-8 rounded-xl border border-zinc-700 bg-zinc-900/60 p-3">
+              <div className="brand-panel ml-8 rounded-2xl border border-white/8 p-3">
                 <p className="mb-2 text-xs text-zinc-400">Selecione o dia da transação</p>
                 <input
                   type="date"
                   value={customDate}
                   onChange={(e) => handleCustomDateChange(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-zinc-500"
+                  className="brand-panel w-full rounded-2xl border border-white/8 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-lime-300"
                 />
               </div>
             </div>
@@ -433,7 +433,7 @@ export function TransactionFormModal({
                   style: { color: selectedCategory?.color ?? '#6366F1' },
                 })}
               </span>
-              <span className="rounded-full border border-zinc-600 px-3 py-1 text-sm text-zinc-200">
+              <span className="rounded-full border border-white/10 px-3 py-1 text-sm text-zinc-200 brand-gradient-soft">
                 {selectedCategory?.name ?? 'Categoria'}
               </span>
             </div>
@@ -458,7 +458,7 @@ export function TransactionFormModal({
                   style: { color: selectedAccount?.color ?? '#EF4444' },
                 })}
               </span>
-              <span className="flex items-center gap-2 rounded-full border border-zinc-600 px-3 py-1 text-sm text-zinc-200">
+              <span className="brand-gradient-soft flex items-center gap-2 rounded-full border border-white/10 px-3 py-1 text-sm text-zinc-200">
                 {selectedAccount?.name ?? 'Conta'}
               </span>
             </div>
@@ -484,7 +484,7 @@ export function TransactionFormModal({
                     style: { color: selectedDestinationAccount?.color ?? '#10B981' },
                   })}
                 </span>
-                <span className="flex items-center gap-2 rounded-full border border-zinc-600 px-3 py-1 text-sm text-zinc-200">
+                <span className="brand-gradient-soft flex items-center gap-2 rounded-full border border-white/10 px-3 py-1 text-sm text-zinc-200">
                   {selectedDestinationAccount?.name ?? 'Conta destino'}
                 </span>
               </div>
@@ -508,7 +508,7 @@ export function TransactionFormModal({
               type="button"
               onClick={() => setFixedExpense((value) => !value)}
               className={`relative h-6 w-12 overflow-hidden rounded-full transition-colors ${
-                fixedExpense ? 'bg-purple-500' : 'bg-zinc-700'
+                fixedExpense ? 'brand-gradient' : 'bg-zinc-700'
               }`}
             >
               <span
@@ -528,7 +528,7 @@ export function TransactionFormModal({
               type="button"
               onClick={() => setRepeat((value) => !value)}
               className={`relative h-6 w-12 overflow-hidden rounded-full transition-colors ${
-                repeat ? 'bg-purple-500' : 'bg-zinc-700'
+                repeat ? 'brand-gradient' : 'bg-zinc-700'
               }`}
             >
               <span
@@ -545,7 +545,7 @@ export function TransactionFormModal({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="fixed bottom-8 right-6 flex h-14 w-14 items-center justify-center rounded-full bg-red-500 shadow-xl disabled:opacity-60"
+          className="brand-gradient brand-glow fixed bottom-8 right-6 flex h-14 w-14 items-center justify-center rounded-full shadow-xl disabled:opacity-60"
           aria-label={mode === 'create' ? 'Confirmar cadastro' : 'Salvar alterações'}
         >
           <Check size={26} />
@@ -561,8 +561,8 @@ export function TransactionFormModal({
             className="absolute inset-0 bg-black/80"
           />
 
-          <div className="absolute inset-x-0 bottom-0 max-h-[80vh] overflow-y-auto rounded-t-3xl bg-[#161825]">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-zinc-800 bg-[#161825] px-5 py-3">
+          <div className="brand-panel absolute inset-x-0 bottom-0 max-h-[80vh] overflow-y-auto rounded-t-3xl border border-white/6">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/6 bg-[rgba(39,38,37,0.95)] px-5 py-3 backdrop-blur-xl">
               <h3 className="text-lg font-semibold">Selecione uma categoria</h3>
               <button
                 type="button"
@@ -585,8 +585,8 @@ export function TransactionFormModal({
                   }}
                   className={`flex w-full items-center justify-between px-5 py-4 transition-colors ${
                     categoryId === category.id
-                      ? 'bg-zinc-800/50 text-red-500'
-                      : 'text-zinc-200 hover:bg-zinc-800/30'
+                        ? 'bg-white/8 text-lime-300'
+                        : 'text-zinc-200 hover:bg-white/5'
                   }`}
                 >
                   <span className="flex items-center gap-3">
@@ -621,8 +621,8 @@ export function TransactionFormModal({
             className="absolute inset-0 bg-black/80"
           />
 
-          <div className="absolute inset-x-0 bottom-0 max-h-[80vh] overflow-y-auto rounded-t-3xl bg-[#161825]">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-zinc-800 bg-[#161825] px-5 py-3">
+          <div className="brand-panel absolute inset-x-0 bottom-0 max-h-[80vh] overflow-y-auto rounded-t-3xl border border-white/6">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/6 bg-[rgba(39,38,37,0.95)] px-5 py-3 backdrop-blur-xl">
               <h3 className="text-lg font-semibold">{accountPickerTitle}</h3>
               <button
                 type="button"
@@ -647,7 +647,7 @@ export function TransactionFormModal({
                     type="button"
                     onClick={() => handleAccountSelection(account.id)}
                     className={`flex w-full items-center justify-between px-5 py-4 transition-colors ${
-                      isSelected ? 'bg-zinc-800/50 text-red-500' : 'text-zinc-200 hover:bg-zinc-800/30'
+                      isSelected ? 'bg-white/8 text-lime-300' : 'text-zinc-200 hover:bg-white/5'
                     }`}
                   >
                     <span className="flex items-center gap-3">
@@ -683,7 +683,7 @@ export function TransactionFormModal({
             className="absolute inset-0 bg-black/80"
           />
 
-          <div className="absolute inset-x-0 bottom-0 rounded-t-3xl bg-[#1b1f2e] px-5 pb-7 pt-5 shadow-2xl">
+          <div className="rounded-t-3xl border border-white/6 bg-[linear-gradient(180deg,rgba(61,29,29,0.92),rgba(42,23,23,0.96))] px-5 pb-7 pt-5 shadow-2xl absolute inset-x-0 bottom-0">
             <div className="mb-3 flex items-center justify-between">
               <h4 className="text-lg font-semibold text-zinc-100">Excluir transação</h4>
               <button
@@ -704,7 +704,7 @@ export function TransactionFormModal({
               <button
                 type="button"
                 onClick={() => setIsDeleteConfirmOpen(false)}
-                className="rounded-2xl border border-zinc-700 px-4 py-3 text-sm font-semibold text-zinc-200"
+                className="brand-panel rounded-2xl border border-white/8 px-4 py-3 text-sm font-semibold text-zinc-200"
               >
                 Cancelar
               </button>

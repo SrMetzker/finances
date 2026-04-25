@@ -70,12 +70,12 @@ export default function WorkspacesPage() {
   return (
     <PageShell title="Workspaces" onHeaderAdd={openCreateModal}>
       <div className="px-4 py-4">
-        <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-[#1e2235]">
+        <div className="brand-surface overflow-hidden rounded-[1.75rem]">
           {workspaces.map((workspace, index) => (
             <div
               key={workspace.id}
               className={`flex items-center justify-between px-4 py-4 ${
-                index < workspaces.length - 1 ? 'border-b border-zinc-700/40' : ''
+                index < workspaces.length - 1 ? 'border-b border-white/6' : ''
               }`}
             >
               <button
@@ -85,7 +85,7 @@ export default function WorkspacesPage() {
                 aria-label={`Selecionar workspace ${workspace.name}`}
               >
                 <p className="text-sm font-semibold text-zinc-100">{workspace.name}</p>
-                <p className="text-xs text-zinc-400">
+                <p className="text-xs text-zinc-400/90">
                   {workspace.id === workspaceId ? 'Workspace ativo' : 'Toque para ativar'}
                 </p>
               </button>
@@ -93,7 +93,7 @@ export default function WorkspacesPage() {
               <button
                 type="button"
                 onClick={() => openEditModal(workspace.id, workspace.name)}
-                className="ml-3 flex h-9 w-9 items-center justify-center rounded-full border border-zinc-600 bg-zinc-700/30 text-zinc-300 hover:text-zinc-100"
+                className="brand-gradient-soft ml-3 flex h-9 w-9 items-center justify-center rounded-full border border-lime-300/20 text-lime-300 transition hover:scale-[1.03]"
                 aria-label={`Editar workspace ${workspace.name}`}
               >
                 <Edit size={15} />
@@ -102,7 +102,7 @@ export default function WorkspacesPage() {
           ))}
 
           {workspaces.length === 0 && (
-            <div className="px-4 py-8 text-center text-sm text-zinc-400">
+            <div className="px-4 py-8 text-center text-sm text-zinc-400/90">
               Nenhum workspace encontrado.
             </div>
           )}
@@ -115,16 +115,16 @@ export default function WorkspacesPage() {
             type="button"
             aria-label="Fechar modal"
             onClick={closeModal}
-            className="absolute inset-0 bg-black/80"
+            className="absolute inset-0 bg-black/82"
           />
 
-          <div className="absolute inset-x-0 bottom-0 rounded-t-2xl bg-[#1f2332] px-5 pb-7 pt-5 shadow-2xl">
+          <div className="brand-panel absolute inset-x-0 bottom-0 rounded-t-3xl border border-white/6 px-5 pb-7 pt-5 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-base font-semibold">{modalTitle}</h3>
+              <h3 className="brand-accent-text text-base font-semibold">{modalTitle}</h3>
               <button
                 type="button"
                 onClick={closeModal}
-                className="rounded-full p-1 text-zinc-400"
+                className="rounded-full p-1 text-zinc-400 transition hover:text-zinc-100"
                 aria-label="Fechar"
               >
                 <X size={20} />
@@ -137,7 +137,7 @@ export default function WorkspacesPage() {
                 <input
                   value={name}
                   onChange={(event) => setName(event.target.value)}
-                  className="w-full rounded-lg border border-zinc-600 bg-zinc-800 px-3 py-2 text-sm outline-none focus:border-zinc-400"
+                  className="brand-panel w-full rounded-2xl border border-white/8 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-lime-300"
                   placeholder="Ex.: Empresa, Casa, Investimentos"
                   autoFocus
                 />
@@ -148,7 +148,7 @@ export default function WorkspacesPage() {
               <button
                 type="submit"
                 disabled={isSaving}
-                className="w-full rounded-lg bg-purple-600 px-4 py-3 text-sm font-semibold transition hover:bg-purple-500 disabled:opacity-60"
+                className="brand-gradient inline-flex w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold transition hover:scale-[1.01] disabled:opacity-60"
               >
                 {isSaving ? 'Salvando...' : editingWorkspaceId ? 'Salvar alterações' : 'Criar workspace'}
               </button>

@@ -2,6 +2,19 @@
 
 :root {
   color-scheme: dark;
+  --bg: #272625;
+  --bg-deep: #1f1e1d;
+  --surface: #323130;
+  --surface-strong: #3b3a39;
+  --surface-soft: #f0f0eb;
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #f2f1ea;
+  --muted: #b8b7b1;
+  --accent-green: #00e2a0;
+  --accent-lime: #d4ff00;
+  --accent-yellow: #f4ff5c;
+  --danger: #ff5e5b;
+  --shadow-neon: 0 0 0 1px rgba(212, 255, 0, 0.08), 0 16px 48px rgba(0, 0, 0, 0.34);
 }
 
 * {
@@ -10,7 +23,76 @@
 
 body {
   margin: 0;
-  background: #0f1117;
-  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(212, 255, 0, 0.14), transparent 22%),
+    radial-gradient(circle at top right, rgba(0, 226, 160, 0.12), transparent 20%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
+  color: var(--text);
+  font-family: "Segoe UI", "Trebuchet MS", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: rgba(212, 255, 0, 0.26);
+  color: #10100f;
+}
+
+.brand-surface {
+  background: linear-gradient(180deg, rgba(60, 59, 57, 0.92), rgba(46, 45, 44, 0.96));
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-neon);
+}
+
+.brand-surface-soft {
+  background: linear-gradient(180deg, rgba(245, 245, 239, 0.96), rgba(227, 226, 220, 0.92));
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #20201d;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+}
+
+.brand-panel {
+  background: rgba(40, 39, 38, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.brand-glow {
+  box-shadow: 0 0 0 1px rgba(212, 255, 0, 0.12), 0 0 24px rgba(0, 226, 160, 0.12);
+}
+
+.brand-gradient {
+  background: linear-gradient(90deg, var(--accent-green) 0%, var(--accent-lime) 68%, var(--accent-yellow) 100%);
+  color: #161613;
+}
+
+.brand-gradient-soft {
+  background: linear-gradient(90deg, rgba(0, 226, 160, 0.2) 0%, rgba(212, 255, 0, 0.24) 100%);
+}
+
+.brand-accent-text {
+  background: linear-gradient(90deg, var(--accent-green) 0%, var(--accent-lime) 72%, var(--accent-yellow) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.brand-grid {
+  position: relative;
+}
+
+.brand-grid::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(circle at center, black 45%, transparent 85%);
+  opacity: 0.34;
 }

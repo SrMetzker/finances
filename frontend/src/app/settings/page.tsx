@@ -11,7 +11,7 @@ const MENU_ITEMS = [
     icon: UserCircle2,
     label: 'Perfil',
     description: 'Nome e foto do perfil',
-    iconClass: 'text-purple-400',
+    iconClass: 'text-lime-300',
   },
   {
     href: '/settings/workspace',
@@ -43,8 +43,8 @@ export default function SettingsPage() {
     <PageShell title="Configurações" backHref="/more">
       <div className="mx-4 my-4 space-y-3 pb-6">
         {/* Avatar + nome do usuário */}
-        <div className="flex items-center gap-3 rounded-2xl border border-zinc-800 bg-[#1e2235] p-4">
-          <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-zinc-700/60 flex-shrink-0">
+        <div className="brand-surface flex items-center gap-3 rounded-[1.75rem] p-4">
+          <div className="brand-gradient flex h-14 w-14 items-center justify-center overflow-hidden rounded-full flex-shrink-0">
             {user?.avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={user.avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
@@ -61,23 +61,23 @@ export default function SettingsPage() {
         </div>
 
         {/* Menu itens */}
-        <div className="rounded-2xl border border-zinc-800 bg-[#1e2235] overflow-hidden">
+        <div className="brand-surface overflow-hidden rounded-[1.75rem]">
           {MENU_ITEMS.map((item, index) => (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-4 py-4 hover:bg-zinc-700/20 transition-colors ${
-                index < MENU_ITEMS.length - 1 ? 'border-b border-zinc-800' : ''
+              className={`flex items-center gap-3 px-4 py-4 transition-colors hover:bg-white/5 ${
+                index < MENU_ITEMS.length - 1 ? 'border-b border-white/6' : ''
               }`}
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-700/40 flex-shrink-0">
+              <div className="brand-gradient-soft flex h-9 w-9 items-center justify-center rounded-full border border-lime-300/10 flex-shrink-0">
                 <item.icon size={18} className={item.iconClass} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-zinc-100">{item.label}</p>
                 <p className="text-xs text-zinc-500 truncate">{item.description}</p>
               </div>
-              <ChevronRight size={16} className="text-zinc-600 flex-shrink-0" />
+              <ChevronRight size={16} className="text-lime-200/70 flex-shrink-0" />
             </Link>
           ))}
         </div>

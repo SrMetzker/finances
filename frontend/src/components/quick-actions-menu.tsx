@@ -65,7 +65,7 @@ export function QuickActionsMenu({
                   <button
                     type="button"
                     onClick={() => onSelect(item.id)}
-                    className="pointer-events-auto h-14 w-14 rounded-full bg-[#5c5e6d] flex items-center justify-center"
+                    className="brand-surface pointer-events-auto flex h-14 w-14 items-center justify-center rounded-full"
                   >
                     <item.icon size={24} className={item.iconClassName ?? 'text-zinc-200'} />
                   </button>
@@ -82,7 +82,7 @@ export function QuickActionsMenu({
           type="button"
           onClick={onToggle}
           aria-label={isOpen ? 'Fechar ações rápidas' : 'Abrir ações rápidas'}
-          className="relative -top-3 h-14 w-14 rounded-full bg-purple-600 flex items-center justify-center shadow-xl"
+          className="brand-gradient brand-glow relative -top-3 flex h-14 w-14 items-center justify-center rounded-full shadow-xl"
         >
           {isOpen ? <X size={28} /> : <Plus size={28} />}
         </button>

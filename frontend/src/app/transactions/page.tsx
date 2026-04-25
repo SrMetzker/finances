@@ -70,17 +70,17 @@ export default function TransactionsPage() {
     <PageShell title="Transações">
       {/* month navigator */}
       <div className="flex items-center justify-between px-8 py-3">
-        <button onClick={prevMonth} className="text-zinc-400">
+        <button onClick={prevMonth} className="rounded-full p-1 text-zinc-400 transition-colors hover:bg-white/6">
           <ChevronLeft size={22} />
         </button>
         <span className="font-semibold">{MONTH_NAMES[parsed.month - 1]}</span>
-        <button onClick={nextMonth} className="text-zinc-400">
+        <button onClick={nextMonth} className="rounded-full p-1 text-zinc-400 transition-colors hover:bg-white/6">
           <ChevronRight size={22} />
         </button>
       </div>
 
       {/* balance card */}
-      <div className="mx-4 mb-4 rounded-2xl bg-[#1e2235] p-4 flex justify-around items-center">
+      <div className="brand-surface mx-4 mb-4 flex items-center justify-around rounded-[1.75rem] p-4">
         <div className="flex items-center gap-2">
           <Lock size={16} className="text-green-400" />
           <div>
@@ -88,7 +88,7 @@ export default function TransactionsPage() {
             <p className="font-bold text-green-400">{money(totalBalance)}</p>
           </div>
         </div>
-        <div className="w-px h-8 bg-zinc-700" />
+        <div className="h-8 w-px bg-white/10" />
         <div className="flex items-center gap-2">
           <Wallet size={16} className="text-zinc-400" />
           <div>
@@ -103,7 +103,7 @@ export default function TransactionsPage() {
       {filtered.length === 0 ? (
         /* empty state */
         <div className="flex flex-col items-center justify-center py-16 px-8 text-center">
-          <div className="w-48 h-48 rounded-full bg-white/5 flex items-center justify-center mb-6">
+          <div className="brand-surface-soft mb-6 flex h-48 w-48 items-center justify-center rounded-full">
             <span className="text-7xl">🔍</span>
           </div>
           <p className="font-bold text-lg leading-snug">

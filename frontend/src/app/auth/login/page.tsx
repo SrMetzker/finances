@@ -21,11 +21,11 @@ export default function LoginPage() {
   // If already authenticated, show logout option
   if (isAuthenticated && user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-[#1e2235] rounded-2xl p-8 shadow-xl">
-          <h1 className="text-3xl font-bold text-center mb-8">Finances</h1>
+      <div className="brand-grid flex min-h-screen items-center justify-center px-4 py-8">
+        <div className="brand-surface w-full max-w-md rounded-[2rem] p-8">
+          <h1 className="brand-accent-text mb-8 text-center text-3xl font-bold">Finances</h1>
 
-          <div className="bg-zinc-700/30 rounded-lg p-4 mb-6">
+          <div className="brand-gradient-soft mb-6 rounded-2xl p-4 text-zinc-100">
             <p className="text-sm text-zinc-400">Usuário autenticado:</p>
             <p className="text-lg font-semibold text-white">{user.email}</p>
             <p className="text-sm text-zinc-300">{user.name}</p>
@@ -49,7 +49,7 @@ export default function LoginPage() {
 
           <button
             onClick={() => router.push('/dashboard')}
-            className="w-full mt-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-lg transition-colors"
+            className="brand-gradient mt-3 w-full rounded-2xl py-3 font-semibold transition-transform hover:scale-[1.01]"
           >
             Ir para Dashboard
           </button>
@@ -99,13 +99,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-4">
+    <div className="brand-grid flex min-h-screen items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
-        <div className="bg-[#1e2235] rounded-2xl p-8 shadow-xl">
-          <h1 className="text-3xl font-bold text-center mb-2">Finances</h1>
-          <p className="text-center text-sm text-zinc-400 mb-6">Controle financeiro pessoal</p>
+        <div className="brand-surface rounded-[2rem] p-8">
+          <h1 className="brand-accent-text mb-2 text-center text-4xl font-bold tracking-[0.04em]">Finances</h1>
+          <p className="mb-6 text-center text-sm text-zinc-400">Controle financeiro pessoal</p>
 
-          <div className="mb-6 grid grid-cols-2 rounded-xl bg-zinc-900/70 p-1">
+          <div className="brand-panel mb-6 grid grid-cols-2 rounded-2xl p-1.5">
             <button
               type="button"
               onClick={() => {
@@ -113,7 +113,7 @@ export default function LoginPage() {
                 setError('');
               }}
               className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                mode === 'login' ? 'bg-purple-600 text-white' : 'text-zinc-400'
+                mode === 'login' ? 'brand-gradient' : 'text-zinc-400'
               }`}
             >
               Entrar
@@ -125,7 +125,7 @@ export default function LoginPage() {
                 setError('');
               }}
               className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                mode === 'register' ? 'bg-purple-600 text-white' : 'text-zinc-400'
+                mode === 'register' ? 'brand-gradient' : 'text-zinc-400'
               }`}
             >
               Cadastrar
@@ -141,7 +141,7 @@ export default function LoginPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={isLoading}
-                  className="w-full bg-zinc-700/50 border border-zinc-600 rounded-lg px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 disabled:opacity-50"
+                  className="brand-panel w-full rounded-2xl border border-white/8 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-lime-300 disabled:opacity-50"
                   placeholder="Seu nome"
                   required
                 />
@@ -155,7 +155,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
-                className="w-full bg-zinc-700/50 border border-zinc-600 rounded-lg px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 disabled:opacity-50"
+                className="brand-panel w-full rounded-2xl border border-white/8 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-lime-300 disabled:opacity-50"
                 placeholder="joao@example.com"
                 required
               />
@@ -168,7 +168,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
-                className="w-full bg-zinc-700/50 border border-zinc-600 rounded-lg px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 disabled:opacity-50"
+                className="brand-panel w-full rounded-2xl border border-white/8 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-lime-300 disabled:opacity-50"
                 placeholder="•••••••••"
                 required
               />
@@ -183,7 +183,7 @@ export default function LoginPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     disabled={isLoading}
-                    className="w-full bg-zinc-700/50 border border-zinc-600 rounded-lg px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 disabled:opacity-50"
+                    className="brand-panel w-full rounded-2xl border border-white/8 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-lime-300 disabled:opacity-50"
                     placeholder="Repita a senha"
                     required
                   />
@@ -196,7 +196,7 @@ export default function LoginPage() {
                     value={workspaceName}
                     onChange={(e) => setWorkspaceName(e.target.value)}
                     disabled={isLoading}
-                    className="w-full bg-zinc-700/50 border border-zinc-600 rounded-lg px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 disabled:opacity-50"
+                    className="brand-panel w-full rounded-2xl border border-white/8 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-lime-300 disabled:opacity-50"
                     placeholder="Ex.: Finanças pessoais"
                   />
                   <p className="mt-1 text-xs text-zinc-500">
@@ -206,12 +206,12 @@ export default function LoginPage() {
               </>
             )}
 
-            {error && <div className="bg-red-900/20 border border-red-500 rounded-lg p-3 text-red-300 text-sm">{error}</div>}
+            {error && <div className="rounded-2xl border border-red-500/50 bg-red-900/20 p-3 text-sm text-red-200">{error}</div>}
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-semibold py-2.5 rounded-lg transition-colors mt-6 flex items-center justify-center gap-2"
+              className="brand-gradient mt-6 flex w-full items-center justify-center gap-2 rounded-2xl py-3 font-semibold transition-transform disabled:opacity-50 hover:scale-[1.01]"
             >
               {isLoading
                 ? mode === 'login'

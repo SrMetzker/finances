@@ -226,8 +226,8 @@ export default function AccountsPage() {
           </button>
         </div>
 
-        <div className="rounded-2xl bg-[#3b3e4a] px-4 py-4">
-          <div className="mb-4 grid grid-cols-2 gap-3 border-b border-zinc-500/50 pb-4">
+        <div className="brand-surface rounded-[1.75rem] px-4 py-4">
+          <div className="mb-4 grid grid-cols-2 gap-3 border-b border-white/8 pb-4">
             <div className="space-y-1">
               <p className="text-xs font-medium text-zinc-300">Saldo atual</p>
               <p className="font-bold text-green-400">{money(totalCurrent)}</p>
@@ -238,7 +238,7 @@ export default function AccountsPage() {
             </div>
           </div>
 
-          <div className="divide-y divide-zinc-500/40">
+          <div className="divide-y divide-white/6">
             {accounts.map((account) => {
               const current = Number(account.currentBalance);
               const projected = current + (pendingByAccount[account.id] ?? 0);
@@ -266,14 +266,14 @@ export default function AccountsPage() {
                       <button
                         type="button"
                         onClick={() => setOpenDropdownId(openDropdownId === account.id ? null : account.id)}
-                        className="rounded-full p-2 text-zinc-300 hover:bg-zinc-700/30"
+                        className="rounded-full p-2 text-zinc-300 transition-colors hover:bg-white/6"
                         aria-label={`Ações da conta ${account.name}`}
                       >
                         <MoreVertical size={20} />
                       </button>
 
                       {openDropdownId === account.id && (
-                        <div className="absolute right-0 top-full z-50 mt-1 min-w-40 rounded-lg border border-zinc-700 bg-[#1e2235] p-1 shadow-lg">
+                        <div className="brand-surface absolute right-0 top-full z-50 mt-1 min-w-40 rounded-2xl p-1.5 shadow-lg">
                           <button
                             type="button"
                             onClick={() =>
@@ -285,7 +285,7 @@ export default function AccountsPage() {
                                 account.color,
                               )
                             }
-                            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-purple-300 hover:bg-zinc-700/40"
+                            className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-lime-300 hover:bg-white/6"
                           >
                             <Edit size={14} />
                             Editar
@@ -320,7 +320,7 @@ export default function AccountsPage() {
             onClick={closeEditModal}
             aria-label="Fechar modal"
           />
-          <div className="absolute inset-x-0 bottom-0 rounded-t-3xl bg-[#161825] p-6">
+          <div className="brand-panel absolute inset-x-0 bottom-0 rounded-t-3xl border border-white/6 p-6 shadow-2xl">
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-lg font-semibold">Editar conta</h2>
               <button type="button" onClick={closeEditModal} className="text-zinc-400" aria-label="Fechar">
@@ -335,7 +335,7 @@ export default function AccountsPage() {
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 outline-none focus:border-purple-500"
+                  className="brand-panel w-full rounded-2xl border border-white/8 px-3 py-2 outline-none focus:border-lime-300"
                   required
                 />
               </label>
@@ -347,7 +347,7 @@ export default function AccountsPage() {
                   step="0.01"
                   value={editBalance}
                   onChange={(e) => setEditBalance(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 outline-none focus:border-purple-500"
+                  className="brand-panel w-full rounded-2xl border border-white/8 px-3 py-2 outline-none focus:border-lime-300"
                   required
                 />
               </label>
@@ -366,7 +366,7 @@ export default function AccountsPage() {
               <button
                 type="submit"
                 disabled={isSaving}
-                className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-purple-600 py-2.5 font-semibold text-white disabled:opacity-60"
+                className="brand-gradient mt-2 flex w-full items-center justify-center gap-2 rounded-2xl py-2.5 font-semibold disabled:opacity-60"
               >
                 {isSaving ? 'Salvando...' : 'Salvar alterações'}
               </button>
@@ -383,7 +383,7 @@ export default function AccountsPage() {
             onClick={closeCreateModal}
             aria-label="Fechar modal"
           />
-          <div className="absolute inset-x-0 bottom-0 rounded-t-3xl bg-[#161825] p-6">
+          <div className="brand-panel absolute inset-x-0 bottom-0 rounded-t-3xl border border-white/6 p-6 shadow-2xl">
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-lg font-semibold">Nova conta</h2>
               <button type="button" onClick={closeCreateModal} className="text-zinc-400" aria-label="Fechar">
@@ -398,7 +398,7 @@ export default function AccountsPage() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 outline-none focus:border-purple-500"
+                  className="brand-panel w-full rounded-2xl border border-white/8 px-3 py-2 outline-none focus:border-lime-300"
                   placeholder="Ex.: Conta digital"
                   required
                 />
@@ -411,7 +411,7 @@ export default function AccountsPage() {
                   step="0.01"
                   value={initialBalance}
                   onChange={(e) => setInitialBalance(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 outline-none focus:border-purple-500"
+                  className="brand-panel w-full rounded-2xl border border-white/8 px-3 py-2 outline-none focus:border-lime-300"
                   required
                 />
               </label>
@@ -426,7 +426,7 @@ export default function AccountsPage() {
               <button
                 type="submit"
                 disabled={isSaving}
-                className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-purple-600 py-2.5 font-semibold text-white disabled:opacity-60"
+                className="brand-gradient mt-2 flex w-full items-center justify-center gap-2 rounded-2xl py-2.5 font-semibold disabled:opacity-60"
               >
                 <Plus size={16} />
                 {isSaving ? 'Criando...' : 'Criar conta'}

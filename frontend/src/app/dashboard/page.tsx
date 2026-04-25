@@ -47,7 +47,7 @@ export default function DashboardPage() {
           <select
             value={workspaceId ?? ''}
             onChange={(event) => setWorkspaceId(event.target.value)}
-            className="w-full appearance-none rounded-full border border-zinc-700 bg-[#1e2235] px-4 py-2 text-center text-sm font-semibold text-zinc-100 outline-none transition focus:border-zinc-500"
+            className="brand-panel w-full appearance-none rounded-full border border-white/8 px-4 py-2 text-center text-sm font-semibold text-zinc-100 outline-none transition focus:border-lime-300"
             aria-label="Selecionar workspace"
           >
             {workspaces.map((workspace) => (
@@ -99,7 +99,7 @@ export default function DashboardPage() {
       </div>
 
       {/* accounts card */}
-      <div className="mx-4 mb-4 rounded-2xl bg-[#1e2235] p-4">
+      <div className="brand-surface mx-4 mb-4 rounded-[1.75rem] p-4">
         <div className="flex items-center justify-between mb-1">
           <Link href="/accounts" className="font-semibold text-base">
             Contas
@@ -132,7 +132,7 @@ export default function DashboardPage() {
                   <p className="text-sm text-green-400">{money(Number(account.currentBalance))}</p>
                 </div>
               </div>
-              <button className="text-purple-400 font-light" aria-label="Adicionar">
+              <button className="font-light text-lime-300" aria-label="Adicionar">
                 <Plus size={20} />
               </button>
             </li>
@@ -146,7 +146,7 @@ export default function DashboardPage() {
       </div>
 
       {/* cards section */}
-      <div className="mx-4 mb-4 rounded-2xl bg-[#1e2235] p-4">
+      <div className="brand-surface mx-4 mb-4 rounded-[1.75rem] p-4">
         <h3 className="font-semibold text-base mb-3">Cartões de crédito</h3>
         {cards.length === 0 ? (
           <div className="flex flex-col items-center py-6 text-center">
@@ -159,7 +159,7 @@ export default function DashboardPage() {
         ) : (
           <div className="space-y-2">
             {cards.map((card) => (
-              <div key={card.id} className="flex justify-between items-center p-3 bg-zinc-700/30 rounded-lg">
+              <div key={card.id} className="brand-panel flex items-center justify-between rounded-2xl p-3">
                 <div>
                   <p className="font-medium text-sm">{card.name}</p>
                   <p className="text-xs text-zinc-400">Limite: {money(Number(card.limit))}</p>
