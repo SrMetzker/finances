@@ -1,6 +1,6 @@
 'use client';
 
-import { createElement, useEffect, useMemo, useState } from 'react';
+import { createElement, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Calendar,
   Check,
@@ -98,6 +98,7 @@ export function TransactionFormModal({
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const amountInputRef = useRef<HTMLInputElement>(null);
 
   const filteredCategories = useMemo(
     () => categories.filter((category) => category.type === type),
@@ -165,6 +166,19 @@ export function TransactionFormModal({
       window.clearTimeout(timeoutId);
     };
   }, [type, accountId, destinationAccountId, accounts]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const timeoutId = window.setTimeout(() => {
+      amountInputRef.current?.focus();
+      amountInputRef.current?.select();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -330,6 +344,7 @@ export function TransactionFormModal({
           <div>
             <p className="mb-1 text-xs text-zinc-400">{TYPE_TEXT[type].amountLabel}</p>
             <input
+              ref={amountInputRef}
               type="number"
               min="0"
               step="0.01"
@@ -411,17 +426,6 @@ export function TransactionFormModal({
             />
           </div>
 
-          <div className="flex items-start gap-3 px-5 py-4">
-            <PenLine size={20} className="mt-1 text-zinc-400 flex-shrink-0" />
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Observação"
-              rows={3}
-              className="flex-1 resize-none rounded-2xl border border-white/8 bg-transparent px-3 py-2 text-zinc-200 outline-none placeholder-zinc-500 focus:border-lime-300"
-            />
-          </div>
-
           {type !== 'TRANSFERENCIA' && (
             <button
               type="button"
@@ -499,6 +503,17 @@ export function TransactionFormModal({
               </div>
             </button>
           )}
+
+          <div className="flex items-start gap-3 px-5 py-4">
+            <PenLine size={20} className="mt-1 text-zinc-400 flex-shrink-0" />
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Observação"
+              rows={3}
+              className="flex-1 resize-none rounded-2xl border border-white/8 bg-transparent px-3 py-2 text-zinc-200 outline-none placeholder-zinc-500 focus:border-lime-300"
+            />
+          </div>
 
         </div>
 

@@ -12,7 +12,7 @@ import {
 } from '@/lib/visual-options';
 import type { CategoryType } from '@/services/api.types';
 import { MoreVertical, Pencil, Plus, Trash2, X } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 export default function CategoriesPage() {
   const { categories, createCategory, updateCategory, deleteCategory } = useCategories();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,6 +26,20 @@ export default function CategoriesPage() {
   const [icon, setIcon] = useState<VisualIconName>(DEFAULT_CATEGORY_ICON);
   const [color, setColor] = useState(DEFAULT_CATEGORY_COLOR);
   const [isSaving, setIsSaving] = useState(false);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!isModalOpen) return;
+
+    const timeoutId = window.setTimeout(() => {
+      nameInputRef.current?.focus();
+      nameInputRef.current?.select();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [isModalOpen]);
 
   const isEditing = editingCategoryId !== null;
   const visibleCategories = useMemo(
@@ -402,6 +416,7 @@ export default function CategoriesPage() {
               <label className="block">
                 <span className="mb-1 block text-sm text-zinc-400">Nome</span>
                 <input
+                  ref={nameInputRef}
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}

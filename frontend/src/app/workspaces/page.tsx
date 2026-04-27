@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Edit, X } from 'lucide-react';
 import { PageShell } from '@/components/page-shell';
 import { useAuth } from '@/services/auth.context';
@@ -13,11 +13,25 @@ export default function WorkspacesPage() {
   const [name, setName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   const modalTitle = useMemo(
     () => (editingWorkspaceId ? 'Editar workspace' : 'Novo workspace'),
     [editingWorkspaceId],
   );
+
+  useEffect(() => {
+    if (!isModalOpen) return;
+
+    const timeoutId = window.setTimeout(() => {
+      nameInputRef.current?.focus();
+      nameInputRef.current?.select();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [isModalOpen]);
 
   function openCreateModal() {
     setEditingWorkspaceId(null);
@@ -135,11 +149,11 @@ export default function WorkspacesPage() {
               <label className="block">
                 <span className="mb-1 block text-sm text-zinc-300">Nome</span>
                 <input
+                  ref={nameInputRef}
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   className="brand-panel w-full rounded-2xl border border-white/8 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-lime-300"
                   placeholder="Ex.: Empresa, Casa, Investimentos"
-                  autoFocus
                 />
               </label>
 
