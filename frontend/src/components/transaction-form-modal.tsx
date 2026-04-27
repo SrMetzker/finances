@@ -5,11 +5,7 @@ import {
   Calendar,
   Check,
   CheckCircle,
-  ChevronRight,
-  ImagePlus,
   PenLine,
-  Pin,
-  RefreshCw,
   Trash2,
   X,
 } from 'lucide-react';
@@ -32,6 +28,7 @@ type DateOption = 'today' | 'yesterday' | 'other';
 type TransactionFormInitialValues = {
   amount?: number;
   description?: string;
+  note?: string;
   date?: string;
   isPaid?: boolean;
   isRecurring?: boolean;
@@ -88,9 +85,9 @@ export function TransactionFormModal({
   const [paid, setPaid] = useState(true);
   const [dateOption, setDateOption] = useState<DateOption>('today');
   const [customDate, setCustomDate] = useState(todayIsoDate());
-  const [fixedExpense, setFixedExpense] = useState(false);
   const [repeat, setRepeat] = useState(false);
   const [description, setDescription] = useState('');
+  const [note, setNote] = useState('');
   const [accountId, setAccountId] = useState('');
   const [destinationAccountId, setDestinationAccountId] = useState('');
   const [categoryId, setCategoryId] = useState('');
@@ -132,11 +129,11 @@ export function TransactionFormModal({
           : '',
       );
       setDescription(initialValues?.description ?? '');
+      setNote(initialValues?.note ?? '');
       setCustomDate(initialDate);
       setDateOption(derivedDateOption);
       setPaid(initialValues?.isPaid ?? !isFutureDate(initialDate));
       setRepeat(initialValues?.isRecurring ?? false);
-      setFixedExpense(false);
       setAccountId(defaultAccountId);
       setDestinationAccountId(defaultDestinationAccountId);
       setCategoryId(type === 'TRANSFERENCIA' ? '' : (initialValues?.categoryId ?? defaultCategoryId));
@@ -269,6 +266,11 @@ export function TransactionFormModal({
         isRecurring: repeat,
         accountId: selectedAccount.id,
       };
+
+      const trimmedNote = note.trim();
+      if (trimmedNote) {
+        payload.note = trimmedNote;
+      }
 
       if (type !== 'TRANSFERENCIA' && selectedCategory) {
         payload.categoryId = selectedCategory.id;
@@ -409,6 +411,17 @@ export function TransactionFormModal({
             />
           </div>
 
+          <div className="flex items-start gap-3 px-5 py-4">
+            <PenLine size={20} className="mt-1 text-zinc-400 flex-shrink-0" />
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Observação"
+              rows={3}
+              className="flex-1 resize-none rounded-2xl border border-white/8 bg-transparent px-3 py-2 text-zinc-200 outline-none placeholder-zinc-500 focus:border-lime-300"
+            />
+          </div>
+
           {type !== 'TRANSFERENCIA' && (
             <button
               type="button"
@@ -487,53 +500,6 @@ export function TransactionFormModal({
             </button>
           )}
 
-          <div className="flex items-center justify-between px-5 py-4">
-            <div className="flex items-center gap-3 text-zinc-400">
-              <ImagePlus size={20} />
-              <span className="text-zinc-200">Anexar</span>
-            </div>
-            <ChevronRight size={18} className="text-zinc-500" />
-          </div>
-
-          <div className="flex items-center justify-between px-5 py-4">
-            <div className="flex items-center gap-3 text-zinc-200">
-              <Pin size={20} className="text-zinc-400" />
-              <span>Despesa fixa</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setFixedExpense((value) => !value)}
-              className={`relative h-6 w-12 overflow-hidden rounded-full transition-colors ${
-                fixedExpense ? 'brand-gradient' : 'bg-zinc-700'
-              }`}
-            >
-              <span
-                className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
-                  fixedExpense ? 'translate-x-6' : 'translate-x-0'
-                }`}
-              />
-            </button>
-          </div>
-
-          <div className="flex items-center justify-between px-5 py-4">
-            <div className="flex items-center gap-3 text-zinc-200">
-              <RefreshCw size={20} className="text-zinc-400" />
-              <span>Repetir</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setRepeat((value) => !value)}
-              className={`relative h-6 w-12 overflow-hidden rounded-full transition-colors ${
-                repeat ? 'brand-gradient' : 'bg-zinc-700'
-              }`}
-            >
-              <span
-                className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
-                  repeat ? 'translate-x-6' : 'translate-x-0'
-                }`}
-              />
-            </button>
-          </div>
         </div>
 
         {error && <p className="px-5 pt-4 text-sm text-red-400">{error}</p>}
