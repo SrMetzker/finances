@@ -64,7 +64,8 @@ export function useCategories() {
     async (id: string, input: Partial<CreateCategoryDto>) => {
       try {
         const updated = await apiClient.updateCategory(id, input);
-        setCategories((prev) => prev.map((c) => (c.id === id ? updated : c)));
+        const synced = await apiClient.getCategories();
+        setCategories(synced);
         return updated;
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Erro ao atualizar categoria';

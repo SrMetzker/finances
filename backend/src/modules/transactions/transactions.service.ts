@@ -4,19 +4,31 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { TransactionType } from '@prisma/client';
+import { PrismaService } from '../../prisma/prisma.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { TransactionsRepository } from './transactions.repository';
 
+const SYSTEM_TRANSFER_CATEGORY_NAME = 'Transferência (sistema)';
+const SYSTEM_TRANSFER_CATEGORY_ICON = 'refresh-cw';
+const SYSTEM_TRANSFER_CATEGORY_COLOR = '#64748B';
+
 @Injectable()
 export class TransactionsService {
-  constructor(private readonly repo: TransactionsRepository) {}
+  constructor(
+    private readonly repo: TransactionsRepository,
+    private readonly prisma: PrismaService,
+  ) {}
 
   async create(workspaceId: string, userId: string, dto: CreateTransactionDto) {
     this.validateTransfer(dto.type, dto.accountId, dto.destinationAccountId);
+
+    const categoryId = await this.resolveCategoryIdForCreate(workspaceId, dto);
+
     return this.repo.create(workspaceId, {
       ...dto,
       date: new Date(dto.date),
+      categoryId,
       userId,
     });
   }
@@ -32,18 +44,26 @@ export class TransactionsService {
   }
 
   async update(workspaceId: string, id: string, dto: UpdateTransactionDto) {
-    if (dto.type === 'TRANSFERENCIA') {
-      if (!dto.accountId) {
-        throw new BadRequestException(
-          'accountId é obrigatório ao alterar o tipo para TRANSFERENCIA.',
-        );
-      }
-      this.validateTransfer(dto.type, dto.accountId, dto.destinationAccountId);
-    } else if (dto.type) {
-      // ENTRADA or SAIDA — no transfer-specific validation needed
+    const current = await this.findOne(workspaceId, id);
+    const nextType = dto.type ?? current.type;
+    const nextAccountId = dto.accountId ?? current.accountId;
+    const nextDestinationAccountId =
+      dto.destinationAccountId ?? current.destinationAccountId ?? undefined;
+
+    if (nextType === 'TRANSFERENCIA') {
+      this.validateTransfer(nextType, nextAccountId, nextDestinationAccountId);
     }
+
+    const categoryId = await this.resolveCategoryIdForUpdate(
+      workspaceId,
+      dto,
+      current.type,
+      current.categoryId,
+    );
+
     const result = await this.repo.update(workspaceId, id, {
       ...dto,
+      categoryId,
       date: dto.date ? new Date(dto.date) : undefined,
     });
     if (result.count === 0) {
@@ -76,5 +96,75 @@ export class TransactionsService {
         'Conta de origem e destino devem ser diferentes.',
       );
     }
+  }
+
+  private async resolveCategoryIdForCreate(
+    workspaceId: string,
+    dto: CreateTransactionDto,
+  ) {
+    if (dto.type === 'TRANSFERENCIA') {
+      return this.getOrCreateInternalTransferCategoryId(workspaceId);
+    }
+
+    if (!dto.categoryId) {
+      throw new BadRequestException(
+        'categoryId é obrigatório para transações de entrada e saída.',
+      );
+    }
+
+    return dto.categoryId;
+  }
+
+  private async resolveCategoryIdForUpdate(
+    workspaceId: string,
+    dto: UpdateTransactionDto,
+    currentType: TransactionType,
+    currentCategoryId: string,
+  ) {
+    const nextType = dto.type ?? currentType;
+
+    if (nextType === 'TRANSFERENCIA') {
+      return this.getOrCreateInternalTransferCategoryId(workspaceId);
+    }
+
+    if (dto.categoryId) {
+      return dto.categoryId;
+    }
+
+    if (currentType !== 'TRANSFERENCIA') {
+      return currentCategoryId;
+    }
+
+    throw new BadRequestException(
+      'categoryId é obrigatório ao converter transferência para entrada ou saída.',
+    );
+  }
+
+  private async getOrCreateInternalTransferCategoryId(workspaceId: string) {
+    const existing = await this.prisma.category.findFirst({
+      where: {
+        workspaceId,
+        type: 'TRANSFERENCIA',
+      },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true },
+    });
+
+    if (existing) {
+      return existing.id;
+    }
+
+    const created = await this.prisma.category.create({
+      data: {
+        workspaceId,
+        name: SYSTEM_TRANSFER_CATEGORY_NAME,
+        type: 'TRANSFERENCIA',
+        icon: SYSTEM_TRANSFER_CATEGORY_ICON,
+        color: SYSTEM_TRANSFER_CATEGORY_COLOR,
+      },
+      select: { id: true },
+    });
+
+    return created.id;
   }
 }

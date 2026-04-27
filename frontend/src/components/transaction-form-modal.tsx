@@ -57,14 +57,6 @@ function isFutureDate(isoDate: string) {
   return selected.getTime() > today.getTime();
 }
 
-function normalizeCategoryName(value: string) {
-  return value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .trim()
-    .toLowerCase();
-}
-
 function detectDateOption(isoDate: string): DateOption {
   if (isoDate === todayIsoDate()) return 'today';
   if (isoDate === isoDateFromOffset(-1)) return 'yesterday';
@@ -116,13 +108,7 @@ export function TransactionFormModal({
   );
 
   const defaultCategoryId = useMemo(() => {
-    if (filteredCategories.length === 0) return '';
-    if (type === 'TRANSFERENCIA') {
-      const transferCategory = filteredCategories.find(
-        (category) => normalizeCategoryName(category.name) === 'transferencia',
-      );
-      if (transferCategory) return transferCategory.id;
-    }
+    if (type === 'TRANSFERENCIA' || filteredCategories.length === 0) return '';
     return filteredCategories[0].id;
   }, [filteredCategories, type]);
 
@@ -153,7 +139,7 @@ export function TransactionFormModal({
       setFixedExpense(false);
       setAccountId(defaultAccountId);
       setDestinationAccountId(defaultDestinationAccountId);
-      setCategoryId(initialValues?.categoryId ?? defaultCategoryId);
+      setCategoryId(type === 'TRANSFERENCIA' ? '' : (initialValues?.categoryId ?? defaultCategoryId));
       setIsCategoryModalOpen(false);
       setAccountPickerTarget(null);
       setIsDeleteConfirmOpen(false);
@@ -255,7 +241,12 @@ export function TransactionFormModal({
       return;
     }
 
-    if (!selectedAccount || !selectedCategory) {
+    if (!selectedAccount) {
+      setError('Selecione uma conta.');
+      return;
+    }
+
+    if (type !== 'TRANSFERENCIA' && !selectedCategory) {
       setError('Selecione conta e categoria.');
       return;
     }
@@ -277,8 +268,11 @@ export function TransactionFormModal({
         isPaid: paid,
         isRecurring: repeat,
         accountId: selectedAccount.id,
-        categoryId: selectedCategory.id,
       };
+
+      if (type !== 'TRANSFERENCIA' && selectedCategory) {
+        payload.categoryId = selectedCategory.id;
+      }
 
       if (type === 'TRANSFERENCIA' && selectedDestinationAccount) {
         payload.destinationAccountId = selectedDestinationAccount.id;
@@ -415,29 +409,31 @@ export function TransactionFormModal({
             />
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsCategoryModalOpen(true)}
-            className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-zinc-800/20"
-          >
-            <div className="flex items-center gap-3">
-              <span
-                className="flex h-7 w-7 items-center justify-center rounded-full border"
-                style={{
-                  backgroundColor: alphaHex(selectedCategory?.color ?? '#6366F1', '22'),
-                  borderColor: alphaHex(selectedCategory?.color ?? '#6366F1', '66'),
-                }}
-              >
-                {createElement(selectedCategoryIcon, {
-                  size: 15,
-                  style: { color: selectedCategory?.color ?? '#6366F1' },
-                })}
-              </span>
-              <span className="rounded-full border border-white/10 px-3 py-1 text-sm text-zinc-200 brand-gradient-soft">
-                {selectedCategory?.name ?? 'Categoria'}
-              </span>
-            </div>
-          </button>
+          {type !== 'TRANSFERENCIA' && (
+            <button
+              type="button"
+              onClick={() => setIsCategoryModalOpen(true)}
+              className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-zinc-800/20"
+            >
+              <div className="flex items-center gap-3">
+                <span
+                  className="flex h-7 w-7 items-center justify-center rounded-full border"
+                  style={{
+                    backgroundColor: alphaHex(selectedCategory?.color ?? '#6366F1', '22'),
+                    borderColor: alphaHex(selectedCategory?.color ?? '#6366F1', '66'),
+                  }}
+                >
+                  {createElement(selectedCategoryIcon, {
+                    size: 15,
+                    style: { color: selectedCategory?.color ?? '#6366F1' },
+                  })}
+                </span>
+                <span className="rounded-full border border-white/10 px-3 py-1 text-sm text-zinc-200 brand-gradient-soft">
+                  {selectedCategory?.name ?? 'Categoria'}
+                </span>
+              </div>
+            </button>
+          )}
 
           <button
             type="button"
@@ -552,7 +548,7 @@ export function TransactionFormModal({
         </button>
       </form>
 
-      {isCategoryModalOpen && (
+      {isCategoryModalOpen && type !== 'TRANSFERENCIA' && (
         <div className="fixed inset-0 z-[90]">
           <button
             type="button"
