@@ -16,7 +16,8 @@ import {
 } from '@/lib/visual-options';
 import { ChevronLeft, ChevronRight, MoreVertical, Plus, X, Edit } from 'lucide-react';
 import { useAuth } from '@/services/auth.context';
-import { useState } from 'react';
+import { notify } from '@/services/toast';
+import { useEffect, useRef, useState } from 'react';
 
 const MONTH_NAMES = [
   'Janeiro',
@@ -55,6 +56,34 @@ export default function AccountsPage() {
   const [editColor, setEditColor] = useState(DEFAULT_ACCOUNT_COLOR);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+  const createNameInputRef = useRef<HTMLInputElement>(null);
+  const editNameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!isCreateOpen) return;
+
+    const timeoutId = window.setTimeout(() => {
+      createNameInputRef.current?.focus();
+      createNameInputRef.current?.select();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [isCreateOpen]);
+
+  useEffect(() => {
+    if (!isEditOpen) return;
+
+    const timeoutId = window.setTimeout(() => {
+      editNameInputRef.current?.focus();
+      editNameInputRef.current?.select();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [isEditOpen]);
 
   const pendingByAccount = transactions.reduce<Record<string, number>>((acc, tx) => {
     if (tx.isPaid) {
@@ -116,6 +145,7 @@ export default function AccountsPage() {
     e.preventDefault();
     const parsedBalance = Number(initialBalance);
     if (!name.trim() || Number.isNaN(parsedBalance)) {
+      notify.warning('Preencha nome e saldo inicial válidos.');
       return;
     }
 
@@ -127,7 +157,10 @@ export default function AccountsPage() {
         icon,
         color,
       });
+      notify.success('Conta criada com sucesso.');
       setIsCreateOpen(false);
+    } catch (error) {
+      notify.error(error, 'Não foi possível criar a conta.');
     } finally {
       setIsSaving(false);
     }
@@ -164,6 +197,7 @@ export default function AccountsPage() {
     const trimmedName = editName.trim();
 
     if (!trimmedName || Number.isNaN(newBalance)) {
+      notify.warning('Preencha nome e saldo válidos.');
       return;
     }
 
@@ -197,7 +231,10 @@ export default function AccountsPage() {
         }
       }
 
+      notify.success('Conta atualizada com sucesso.');
       setIsEditOpen(false);
+    } catch (error) {
+      notify.error(error, 'Não foi possível atualizar a conta.');
     } finally {
       setIsSaving(false);
     }
@@ -332,6 +369,7 @@ export default function AccountsPage() {
               <label className="block">
                 <span className="mb-1 block text-sm text-zinc-400">Nome</span>
                 <input
+                  ref={editNameInputRef}
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
@@ -395,6 +433,7 @@ export default function AccountsPage() {
               <label className="block">
                 <span className="mb-1 block text-sm text-zinc-400">Nome</span>
                 <input
+                  ref={createNameInputRef}
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}

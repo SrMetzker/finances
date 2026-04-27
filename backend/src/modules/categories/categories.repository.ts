@@ -8,14 +8,20 @@ export class CategoriesRepository {
 
   create(
     workspaceId: string,
-    data: { name: string; type: CategoryType; icon: string; color: string },
+    data: {
+      name: string;
+      type: CategoryType;
+      icon: string;
+      color: string;
+      parentCategoryId?: string;
+    },
   ) {
     return this.prisma.category.create({ data: { ...data, workspaceId } });
   }
 
   findAll(workspaceId: string) {
     return this.prisma.category.findMany({
-      where: { workspaceId },
+      where: { workspaceId, type: { not: 'TRANSFERENCIA' } },
       orderBy: { name: 'asc' },
     });
   }
@@ -27,7 +33,13 @@ export class CategoriesRepository {
   update(
     workspaceId: string,
     id: string,
-    data: { name?: string; type?: CategoryType; icon?: string; color?: string },
+    data: {
+      name?: string;
+      type?: CategoryType;
+      icon?: string;
+      color?: string;
+      parentCategoryId?: string | null;
+    },
   ) {
     return this.prisma.category.updateMany({
       where: { id, workspaceId },
@@ -37,5 +49,43 @@ export class CategoriesRepository {
 
   remove(workspaceId: string, id: string) {
     return this.prisma.category.deleteMany({ where: { id, workspaceId } });
+  }
+
+  countTransactionsByCategory(workspaceId: string, categoryId: string) {
+    return this.prisma.transaction.count({
+      where: { workspaceId, categoryId },
+    });
+  }
+
+  countSubcategories(workspaceId: string, categoryId: string) {
+    return this.prisma.category.count({
+      where: { workspaceId, parentCategoryId: categoryId },
+    });
+  }
+
+  findByName(
+    workspaceId: string,
+    name: string,
+    parentCategoryId: string | null,
+  ) {
+    return this.prisma.category.findFirst({
+      where: {
+        workspaceId,
+        name: { equals: name, mode: 'insensitive' },
+        parentCategoryId: parentCategoryId ?? null,
+        type: { not: 'TRANSFERENCIA' },
+      },
+    });
+  }
+
+  updateChildrenColor(
+    workspaceId: string,
+    parentCategoryId: string,
+    color: string,
+  ) {
+    return this.prisma.category.updateMany({
+      where: { workspaceId, parentCategoryId },
+      data: { color },
+    });
   }
 }

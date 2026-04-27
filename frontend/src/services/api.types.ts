@@ -30,6 +30,7 @@ export type Category = {
   type: CategoryType;
   icon: string;
   color: string;
+  parentCategoryId?: string | null;
   workspaceId: string;
   createdAt: string;
   updatedAt: string;
@@ -111,7 +112,7 @@ export type CreateTransactionDto = {
   recurrenceRule?: string;
   accountId: string;
   destinationAccountId?: string;
-  categoryId: string;
+  categoryId?: string;
 };
 
 export type CreateAccountDto = {
@@ -133,6 +134,7 @@ export type CreateCategoryDto = {
   type: CategoryType;
   icon: string;
   color: string;
+  parentCategoryId?: string;
 };
 
 export type CreateWorkspaceDto = {

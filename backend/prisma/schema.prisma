@@ -93,12 +93,16 @@ model Category {
   icon         String        @default("tag")
   color        String        @default("#6366F1")
   workspaceId  String
+  parentCategoryId String?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   workspace    Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  parentCategory Category?   @relation("CategoryTree", fields: [parentCategoryId], references: [id], onDelete: SetNull)
+  subcategories Category[]   @relation("CategoryTree")
   transactions Transaction[]
 
   @@index([workspaceId])
+  @@index([parentCategoryId])
 }
 
 model Transaction {

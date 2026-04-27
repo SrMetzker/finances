@@ -1,15 +1,11 @@
 'use client';
 
-import { createElement, useEffect, useMemo, useState } from 'react';
+import { createElement, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Calendar,
   Check,
   CheckCircle,
-  ChevronRight,
-  ImagePlus,
   PenLine,
-  Pin,
-  RefreshCw,
   Trash2,
   X,
 } from 'lucide-react';
@@ -19,6 +15,7 @@ import { useCategories } from '@/hooks/use-categories-api';
 import { formatCurrency } from '@/lib/currency';
 import { alphaHex, getIconComponent } from '@/lib/visual-options';
 import { useAuth } from '@/services/auth.context';
+import { notify } from '@/services/toast';
 import type { CreateTransactionDto, TransactionType } from '@/services/api.types';
 
 const TYPE_TEXT: Record<TransactionType, { createTitle: string; amountLabel: string }> = {
@@ -32,6 +29,7 @@ type DateOption = 'today' | 'yesterday' | 'other';
 type TransactionFormInitialValues = {
   amount?: number;
   description?: string;
+  note?: string;
   date?: string;
   isPaid?: boolean;
   isRecurring?: boolean;
@@ -55,14 +53,6 @@ function isFutureDate(isoDate: string) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   return selected.getTime() > today.getTime();
-}
-
-function normalizeCategoryName(value: string) {
-  return value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .trim()
-    .toLowerCase();
 }
 
 function detectDateOption(isoDate: string): DateOption {
@@ -96,9 +86,9 @@ export function TransactionFormModal({
   const [paid, setPaid] = useState(true);
   const [dateOption, setDateOption] = useState<DateOption>('today');
   const [customDate, setCustomDate] = useState(todayIsoDate());
-  const [fixedExpense, setFixedExpense] = useState(false);
   const [repeat, setRepeat] = useState(false);
   const [description, setDescription] = useState('');
+  const [note, setNote] = useState('');
   const [accountId, setAccountId] = useState('');
   const [destinationAccountId, setDestinationAccountId] = useState('');
   const [categoryId, setCategoryId] = useState('');
@@ -107,8 +97,8 @@ export function TransactionFormModal({
     null,
   );
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const amountInputRef = useRef<HTMLInputElement>(null);
 
   const filteredCategories = useMemo(
     () => categories.filter((category) => category.type === type),
@@ -116,13 +106,7 @@ export function TransactionFormModal({
   );
 
   const defaultCategoryId = useMemo(() => {
-    if (filteredCategories.length === 0) return '';
-    if (type === 'TRANSFERENCIA') {
-      const transferCategory = filteredCategories.find(
-        (category) => normalizeCategoryName(category.name) === 'transferencia',
-      );
-      if (transferCategory) return transferCategory.id;
-    }
+    if (type === 'TRANSFERENCIA' || filteredCategories.length === 0) return '';
     return filteredCategories[0].id;
   }, [filteredCategories, type]);
 
@@ -146,18 +130,17 @@ export function TransactionFormModal({
           : '',
       );
       setDescription(initialValues?.description ?? '');
+      setNote(initialValues?.note ?? '');
       setCustomDate(initialDate);
       setDateOption(derivedDateOption);
       setPaid(initialValues?.isPaid ?? !isFutureDate(initialDate));
       setRepeat(initialValues?.isRecurring ?? false);
-      setFixedExpense(false);
       setAccountId(defaultAccountId);
       setDestinationAccountId(defaultDestinationAccountId);
-      setCategoryId(initialValues?.categoryId ?? defaultCategoryId);
+      setCategoryId(type === 'TRANSFERENCIA' ? '' : (initialValues?.categoryId ?? defaultCategoryId));
       setIsCategoryModalOpen(false);
       setAccountPickerTarget(null);
       setIsDeleteConfirmOpen(false);
-      setError(null);
     }, 0);
 
     return () => {
@@ -182,6 +165,19 @@ export function TransactionFormModal({
       window.clearTimeout(timeoutId);
     };
   }, [type, accountId, destinationAccountId, accounts]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const timeoutId = window.setTimeout(() => {
+      amountInputRef.current?.focus();
+      amountInputRef.current?.select();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -251,23 +247,27 @@ export function TransactionFormModal({
 
     const numericAmount = Number(amount);
     if (!numericAmount || numericAmount <= 0) {
-      setError('Informe um valor válido.');
+      notify.warning('Informe um valor válido.');
       return;
     }
 
-    if (!selectedAccount || !selectedCategory) {
-      setError('Selecione conta e categoria.');
+    if (!selectedAccount) {
+      notify.warning('Selecione uma conta.');
+      return;
+    }
+
+    if (type !== 'TRANSFERENCIA' && !selectedCategory) {
+      notify.warning('Selecione conta e categoria.');
       return;
     }
 
     if (type === 'TRANSFERENCIA' && !selectedDestinationAccount) {
-      setError('Selecione a conta destino.');
+      notify.warning('Selecione a conta destino.');
       return;
     }
 
     try {
       setIsSubmitting(true);
-      setError(null);
 
       const payload: CreateTransactionDto = {
         amount: numericAmount,
@@ -277,17 +277,26 @@ export function TransactionFormModal({
         isPaid: paid,
         isRecurring: repeat,
         accountId: selectedAccount.id,
-        categoryId: selectedCategory.id,
       };
+
+      const trimmedNote = note.trim();
+      if (trimmedNote) {
+        payload.note = trimmedNote;
+      }
+
+      if (type !== 'TRANSFERENCIA' && selectedCategory) {
+        payload.categoryId = selectedCategory.id;
+      }
 
       if (type === 'TRANSFERENCIA' && selectedDestinationAccount) {
         payload.destinationAccountId = selectedDestinationAccount.id;
       }
 
       await onSubmit(payload);
+      notify.success(mode === 'create' ? 'Transação criada com sucesso.' : 'Transação atualizada com sucesso.');
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao salvar transação.');
+      notify.error(err, 'Erro ao salvar transação.');
     } finally {
       setIsSubmitting(false);
     }
@@ -298,11 +307,11 @@ export function TransactionFormModal({
 
     try {
       setIsSubmitting(true);
-      setError(null);
       await onDelete();
+      notify.success('Transação excluída com sucesso.');
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao excluir transação.');
+      notify.error(err, 'Erro ao excluir transação.');
     } finally {
       setIsSubmitting(false);
     }
@@ -334,6 +343,7 @@ export function TransactionFormModal({
           <div>
             <p className="mb-1 text-xs text-zinc-400">{TYPE_TEXT[type].amountLabel}</p>
             <input
+              ref={amountInputRef}
               type="number"
               min="0"
               step="0.01"
@@ -415,29 +425,31 @@ export function TransactionFormModal({
             />
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsCategoryModalOpen(true)}
-            className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-zinc-800/20"
-          >
-            <div className="flex items-center gap-3">
-              <span
-                className="flex h-7 w-7 items-center justify-center rounded-full border"
-                style={{
-                  backgroundColor: alphaHex(selectedCategory?.color ?? '#6366F1', '22'),
-                  borderColor: alphaHex(selectedCategory?.color ?? '#6366F1', '66'),
-                }}
-              >
-                {createElement(selectedCategoryIcon, {
-                  size: 15,
-                  style: { color: selectedCategory?.color ?? '#6366F1' },
-                })}
-              </span>
-              <span className="rounded-full border border-white/10 px-3 py-1 text-sm text-zinc-200 brand-gradient-soft">
-                {selectedCategory?.name ?? 'Categoria'}
-              </span>
-            </div>
-          </button>
+          {type !== 'TRANSFERENCIA' && (
+            <button
+              type="button"
+              onClick={() => setIsCategoryModalOpen(true)}
+              className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-zinc-800/20"
+            >
+              <div className="flex items-center gap-3">
+                <span
+                  className="flex h-7 w-7 items-center justify-center rounded-full border"
+                  style={{
+                    backgroundColor: alphaHex(selectedCategory?.color ?? '#6366F1', '22'),
+                    borderColor: alphaHex(selectedCategory?.color ?? '#6366F1', '66'),
+                  }}
+                >
+                  {createElement(selectedCategoryIcon, {
+                    size: 15,
+                    style: { color: selectedCategory?.color ?? '#6366F1' },
+                  })}
+                </span>
+                <span className="rounded-full border border-white/10 px-3 py-1 text-sm text-zinc-200 brand-gradient-soft">
+                  {selectedCategory?.name ?? 'Categoria'}
+                </span>
+              </div>
+            </button>
+          )}
 
           <button
             type="button"
@@ -491,56 +503,18 @@ export function TransactionFormModal({
             </button>
           )}
 
-          <div className="flex items-center justify-between px-5 py-4">
-            <div className="flex items-center gap-3 text-zinc-400">
-              <ImagePlus size={20} />
-              <span className="text-zinc-200">Anexar</span>
-            </div>
-            <ChevronRight size={18} className="text-zinc-500" />
+          <div className="flex items-start gap-3 px-5 py-4">
+            <PenLine size={20} className="mt-1 text-zinc-400 flex-shrink-0" />
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Observação"
+              rows={3}
+              className="flex-1 resize-none rounded-2xl border border-white/8 bg-transparent px-3 py-2 text-zinc-200 outline-none placeholder-zinc-500 focus:border-lime-300"
+            />
           </div>
 
-          <div className="flex items-center justify-between px-5 py-4">
-            <div className="flex items-center gap-3 text-zinc-200">
-              <Pin size={20} className="text-zinc-400" />
-              <span>Despesa fixa</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setFixedExpense((value) => !value)}
-              className={`relative h-6 w-12 overflow-hidden rounded-full transition-colors ${
-                fixedExpense ? 'brand-gradient' : 'bg-zinc-700'
-              }`}
-            >
-              <span
-                className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
-                  fixedExpense ? 'translate-x-6' : 'translate-x-0'
-                }`}
-              />
-            </button>
-          </div>
-
-          <div className="flex items-center justify-between px-5 py-4">
-            <div className="flex items-center gap-3 text-zinc-200">
-              <RefreshCw size={20} className="text-zinc-400" />
-              <span>Repetir</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setRepeat((value) => !value)}
-              className={`relative h-6 w-12 overflow-hidden rounded-full transition-colors ${
-                repeat ? 'brand-gradient' : 'bg-zinc-700'
-              }`}
-            >
-              <span
-                className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
-                  repeat ? 'translate-x-6' : 'translate-x-0'
-                }`}
-              />
-            </button>
-          </div>
         </div>
-
-        {error && <p className="px-5 pt-4 text-sm text-red-400">{error}</p>}
 
         <button
           type="submit"
@@ -552,7 +526,7 @@ export function TransactionFormModal({
         </button>
       </form>
 
-      {isCategoryModalOpen && (
+      {isCategoryModalOpen && type !== 'TRANSFERENCIA' && (
         <div className="fixed inset-0 z-[90]">
           <button
             type="button"
