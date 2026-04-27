@@ -11,6 +11,7 @@ import {
   type VisualIconName,
 } from '@/lib/visual-options';
 import type { CategoryType } from '@/services/api.types';
+import { notify } from '@/services/toast';
 import { MoreVertical, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 export default function CategoriesPage() {
@@ -19,7 +20,6 @@ export default function CategoriesPage() {
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [parentCategoryId, setParentCategoryId] = useState<string | null>(null);
   const [openMenuCategoryId, setOpenMenuCategoryId] = useState<string | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [type, setType] = useState<CategoryType>('SAIDA');
   const [activeType, setActiveType] = useState<CategoryType>('SAIDA');
@@ -78,7 +78,6 @@ export default function CategoriesPage() {
     setEditingCategoryId(null);
     setParentCategoryId(null);
     setOpenMenuCategoryId(null);
-    setActionError(null);
     setName('');
     setType(activeType);
     setIcon(DEFAULT_CATEGORY_ICON);
@@ -94,7 +93,6 @@ export default function CategoriesPage() {
     setEditingCategoryId(null);
     setParentCategoryId(category.id);
     setOpenMenuCategoryId(null);
-    setActionError(null);
     setName('');
     setType(category.type);
     setIcon(DEFAULT_CATEGORY_ICON);
@@ -113,7 +111,6 @@ export default function CategoriesPage() {
     setEditingCategoryId(category.id);
     setParentCategoryId(category.parentCategoryId ?? null);
     setOpenMenuCategoryId(null);
-    setActionError(null);
     setName(category.name);
     setType(category.type);
     setIcon((category.icon as VisualIconName) || DEFAULT_CATEGORY_ICON);
@@ -142,15 +139,11 @@ export default function CategoriesPage() {
     }
 
     try {
-      setActionError(null);
       await deleteCategory(category.id);
       setOpenMenuCategoryId(null);
+      notify.success('Categoria excluída com sucesso.');
     } catch (error) {
-      setActionError(
-        error instanceof Error
-          ? error.message
-          : 'Não foi possível excluir a categoria.',
-      );
+      notify.error(error, 'Não foi possível excluir a categoria.');
     }
   }
 
@@ -161,7 +154,6 @@ export default function CategoriesPage() {
 
     try {
       setIsSaving(true);
-      setActionError(null);
       const payload = {
         name: trimmedName,
         type,
@@ -172,16 +164,14 @@ export default function CategoriesPage() {
 
       if (isEditing && editingCategoryId) {
         await updateCategory(editingCategoryId, payload);
+        notify.success(parentCategoryId ? 'Subcategoria atualizada com sucesso.' : 'Categoria atualizada com sucesso.');
       } else {
         await createCategory(payload);
+        notify.success(parentCategoryId ? 'Subcategoria criada com sucesso.' : 'Categoria criada com sucesso.');
       }
       setIsModalOpen(false);
     } catch (error) {
-      setActionError(
-        error instanceof Error
-          ? error.message
-          : 'Não foi possível salvar a categoria.',
-      );
+      notify.error(error, 'Não foi possível salvar a categoria.');
     } finally {
       setIsSaving(false);
     }
@@ -342,11 +332,6 @@ export default function CategoriesPage() {
         )}
       </div>
 
-      {actionError && (
-        <p className="mx-4 mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
-          {actionError}
-        </p>
-      )}
 
       {isModalOpen && (
         <div className="fixed inset-0 z-[80]">
@@ -383,15 +368,11 @@ export default function CategoriesPage() {
                         );
                         if (!confirmed) return;
                         try {
-                          setActionError(null);
                           await deleteCategory(editingCategoryId);
+                          notify.success(parentCategoryId ? 'Subcategoria excluída com sucesso.' : 'Categoria excluída com sucesso.');
                           closeModal();
                         } catch (error) {
-                          setActionError(
-                            error instanceof Error
-                              ? error.message
-                              : 'Não foi possível excluir.',
-                          );
+                          notify.error(error, 'Não foi possível excluir.');
                         }
                       })();
                     }}

@@ -15,6 +15,7 @@ import { useCategories } from '@/hooks/use-categories-api';
 import { formatCurrency } from '@/lib/currency';
 import { alphaHex, getIconComponent } from '@/lib/visual-options';
 import { useAuth } from '@/services/auth.context';
+import { notify } from '@/services/toast';
 import type { CreateTransactionDto, TransactionType } from '@/services/api.types';
 
 const TYPE_TEXT: Record<TransactionType, { createTitle: string; amountLabel: string }> = {
@@ -96,7 +97,6 @@ export function TransactionFormModal({
     null,
   );
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const amountInputRef = useRef<HTMLInputElement>(null);
 
@@ -141,7 +141,6 @@ export function TransactionFormModal({
       setIsCategoryModalOpen(false);
       setAccountPickerTarget(null);
       setIsDeleteConfirmOpen(false);
-      setError(null);
     }, 0);
 
     return () => {
@@ -248,28 +247,27 @@ export function TransactionFormModal({
 
     const numericAmount = Number(amount);
     if (!numericAmount || numericAmount <= 0) {
-      setError('Informe um valor válido.');
+      notify.warning('Informe um valor válido.');
       return;
     }
 
     if (!selectedAccount) {
-      setError('Selecione uma conta.');
+      notify.warning('Selecione uma conta.');
       return;
     }
 
     if (type !== 'TRANSFERENCIA' && !selectedCategory) {
-      setError('Selecione conta e categoria.');
+      notify.warning('Selecione conta e categoria.');
       return;
     }
 
     if (type === 'TRANSFERENCIA' && !selectedDestinationAccount) {
-      setError('Selecione a conta destino.');
+      notify.warning('Selecione a conta destino.');
       return;
     }
 
     try {
       setIsSubmitting(true);
-      setError(null);
 
       const payload: CreateTransactionDto = {
         amount: numericAmount,
@@ -295,9 +293,10 @@ export function TransactionFormModal({
       }
 
       await onSubmit(payload);
+      notify.success(mode === 'create' ? 'Transação criada com sucesso.' : 'Transação atualizada com sucesso.');
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao salvar transação.');
+      notify.error(err, 'Erro ao salvar transação.');
     } finally {
       setIsSubmitting(false);
     }
@@ -308,11 +307,11 @@ export function TransactionFormModal({
 
     try {
       setIsSubmitting(true);
-      setError(null);
       await onDelete();
+      notify.success('Transação excluída com sucesso.');
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao excluir transação.');
+      notify.error(err, 'Erro ao excluir transação.');
     } finally {
       setIsSubmitting(false);
     }
@@ -516,8 +515,6 @@ export function TransactionFormModal({
           </div>
 
         </div>
-
-        {error && <p className="px-5 pt-4 text-sm text-red-400">{error}</p>}
 
         <button
           type="submit"

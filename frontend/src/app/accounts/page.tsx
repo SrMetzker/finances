@@ -16,6 +16,7 @@ import {
 } from '@/lib/visual-options';
 import { ChevronLeft, ChevronRight, MoreVertical, Plus, X, Edit } from 'lucide-react';
 import { useAuth } from '@/services/auth.context';
+import { notify } from '@/services/toast';
 import { useEffect, useRef, useState } from 'react';
 
 const MONTH_NAMES = [
@@ -144,6 +145,7 @@ export default function AccountsPage() {
     e.preventDefault();
     const parsedBalance = Number(initialBalance);
     if (!name.trim() || Number.isNaN(parsedBalance)) {
+      notify.warning('Preencha nome e saldo inicial válidos.');
       return;
     }
 
@@ -155,7 +157,10 @@ export default function AccountsPage() {
         icon,
         color,
       });
+      notify.success('Conta criada com sucesso.');
       setIsCreateOpen(false);
+    } catch (error) {
+      notify.error(error, 'Não foi possível criar a conta.');
     } finally {
       setIsSaving(false);
     }
@@ -192,6 +197,7 @@ export default function AccountsPage() {
     const trimmedName = editName.trim();
 
     if (!trimmedName || Number.isNaN(newBalance)) {
+      notify.warning('Preencha nome e saldo válidos.');
       return;
     }
 
@@ -225,7 +231,10 @@ export default function AccountsPage() {
         }
       }
 
+      notify.success('Conta atualizada com sucesso.');
       setIsEditOpen(false);
+    } catch (error) {
+      notify.error(error, 'Não foi possível atualizar a conta.');
     } finally {
       setIsSaving(false);
     }

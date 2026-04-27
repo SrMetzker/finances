@@ -5,6 +5,7 @@ import { Edit, X } from 'lucide-react';
 import { PageShell } from '@/components/page-shell';
 import { useAuth } from '@/services/auth.context';
 import { apiClient } from '@/services/api.client';
+import { notify } from '@/services/toast';
 
 export default function WorkspacesPage() {
   const { workspaces, workspaceId, setWorkspaceId, refreshWorkspaces } = useAuth();
@@ -12,7 +13,6 @@ export default function WorkspacesPage() {
   const [editingWorkspaceId, setEditingWorkspaceId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   const modalTitle = useMemo(
@@ -36,14 +36,12 @@ export default function WorkspacesPage() {
   function openCreateModal() {
     setEditingWorkspaceId(null);
     setName('');
-    setError(null);
     setIsModalOpen(true);
   }
 
   function openEditModal(id: string, currentName: string) {
     setEditingWorkspaceId(id);
     setName(currentName);
-    setError(null);
     setIsModalOpen(true);
   }
 
@@ -57,25 +55,26 @@ export default function WorkspacesPage() {
     const trimmedName = name.trim();
 
     if (!trimmedName) {
-      setError('Informe um nome para o workspace.');
+      notify.warning('Informe um nome para o workspace.');
       return;
     }
 
     try {
       setIsSaving(true);
-      setError(null);
 
       if (editingWorkspaceId) {
         await apiClient.updateWorkspace(editingWorkspaceId, { name: trimmedName });
         await refreshWorkspaces(editingWorkspaceId);
+        notify.success('Workspace atualizado com sucesso.');
       } else {
         const created = await apiClient.createWorkspace({ name: trimmedName });
         await refreshWorkspaces(created.id);
+        notify.success('Workspace criado com sucesso.');
       }
 
       setIsModalOpen(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao salvar workspace.');
+      notify.error(err, 'Erro ao salvar workspace.');
     } finally {
       setIsSaving(false);
     }
@@ -156,8 +155,6 @@ export default function WorkspacesPage() {
                   placeholder="Ex.: Empresa, Casa, Investimentos"
                 />
               </label>
-
-              {error && <p className="text-sm text-red-400">{error}</p>}
 
               <button
                 type="submit"
