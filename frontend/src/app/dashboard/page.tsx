@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { PageShell } from '@/components/page-shell';
 import { useTransactions } from '@/hooks/use-transactions-api';
 import { useAccounts } from '@/hooks/use-accounts-api';
@@ -72,6 +72,7 @@ export default function DashboardPage() {
   const [showValues, setShowValues] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption>(7);
   const [showAllAccounts, setShowAllAccounts] = useState(false);
+  const [activeIncomePointKey, setActiveIncomePointKey] = useState<string | null>(null);
   const { transactions } = useTransactions();
   const { accounts, isLoading: accountsLoading } = useAccounts();
   const { workspaceId, workspace, workspaces, setWorkspaceId } = useAuth();
@@ -233,6 +234,30 @@ export default function DashboardPage() {
   const hasTransactionsInPeriod = filteredTransactions.length > 0;
   const maxIncome = Math.max(...incomeSeries.map((item) => item.value), 0);
   const totalExpensesByCategory = expenseCategories.reduce((sum, item) => sum + item.amount, 0);
+
+  const incomePoints = useMemo(
+    () =>
+      incomeSeries.map((item, index) => {
+        const x = incomeSeries.length === 1 ? 160 : 12 + (index * 296) / (incomeSeries.length - 1);
+        const y = 126 - (item.value / maxIncome) * 100;
+
+        return {
+          ...item,
+          x,
+          y,
+        };
+      }),
+    [incomeSeries, maxIncome],
+  );
+
+  const activeIncomePoint = useMemo(
+    () => incomePoints.find((point) => point.key === activeIncomePointKey) ?? null,
+    [incomePoints, activeIncomePointKey],
+  );
+
+  useEffect(() => {
+    setActiveIncomePointKey(null);
+  }, [selectedPeriod]);
 
   function goToTransactionsWithCategoryFilter(item: {
     rootCategoryId?: string;
@@ -417,7 +442,11 @@ export default function DashboardPage() {
                 <p className="py-10 text-center text-sm text-zinc-400">Sem receitas no período selecionado.</p>
               ) : (
                 <>
-                  <svg viewBox="0 0 320 150" className="h-40 w-full">
+                  <svg
+                    viewBox="0 0 320 150"
+                    className="h-40 w-full"
+                    onClick={() => setActiveIncomePointKey(null)}
+                  >
                     <defs>
                       <linearGradient id="income-line-gradient" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor="#bef264" />
@@ -433,20 +462,72 @@ export default function DashboardPage() {
                       strokeWidth="3"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      points={incomeSeries
-                        .map((item, index) => {
-                          const x = incomeSeries.length === 1 ? 160 : 12 + (index * 296) / (incomeSeries.length - 1);
-                          const y = 126 - (item.value / maxIncome) * 100;
-                          return `${x},${y}`;
-                        })
+                      points={incomePoints
+                        .map((point) => `${point.x},${point.y}`)
                         .join(' ')}
                     />
 
-                    {incomeSeries.map((item, index) => {
-                      const x = incomeSeries.length === 1 ? 160 : 12 + (index * 296) / (incomeSeries.length - 1);
-                      const y = 126 - (item.value / maxIncome) * 100;
-                      return <circle key={item.key} cx={x} cy={y} r="3.5" fill="#bef264" />;
-                    })}
+                    {incomePoints.map((point) => (
+                      <circle
+                        key={point.key}
+                        cx={point.x}
+                        cy={point.y}
+                        r="5"
+                        fill="#bef264"
+                        className="cursor-pointer"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setActiveIncomePointKey((current) =>
+                            current === point.key ? null : point.key,
+                          );
+                        }}
+                      />
+                    ))}
+
+                    {activeIncomePoint && (
+                      <g pointerEvents="none">
+                        {(() => {
+                          const tooltipWidth = 130;
+                          const tooltipHeight = 38;
+                          const tooltipX = Math.min(
+                            Math.max(activeIncomePoint.x - tooltipWidth / 2, 8),
+                            320 - tooltipWidth - 8,
+                          );
+                          const tooltipY = Math.max(activeIncomePoint.y - 52, 8);
+
+                          return (
+                            <>
+                              <rect
+                                x={tooltipX}
+                                y={tooltipY}
+                                width={tooltipWidth}
+                                height={tooltipHeight}
+                                rx="10"
+                                fill="rgba(12, 14, 22, 0.95)"
+                                stroke="rgba(255,255,255,0.16)"
+                              />
+                              <text
+                                x={tooltipX + 10}
+                                y={tooltipY + 16}
+                                fill="#9ca3af"
+                                fontSize="10"
+                              >
+                                {activeIncomePoint.label}
+                              </text>
+                              <text
+                                x={tooltipX + 10}
+                                y={tooltipY + 30}
+                                fill="#e4e4e7"
+                                fontSize="12"
+                                fontWeight="700"
+                              >
+                                {money(activeIncomePoint.value)}
+                              </text>
+                            </>
+                          );
+                        })()}
+                      </g>
+                    )}
                   </svg>
 
                   <div className="mt-1 flex items-center justify-between text-[10px] text-zinc-500">
