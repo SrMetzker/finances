@@ -61,6 +61,29 @@ function detectDateOption(isoDate: string): DateOption {
   return 'other';
 }
 
+function combineDateWithTime(dateOnly: string, sourceDate?: string) {
+  const [year, month, day] = dateOnly.split('-').map(Number);
+  const source = sourceDate ? new Date(sourceDate) : new Date();
+
+  const isValidSource = !Number.isNaN(source.getTime());
+  const hours = isValidSource ? source.getHours() : 0;
+  const minutes = isValidSource ? source.getMinutes() : 0;
+  const seconds = isValidSource ? source.getSeconds() : 0;
+  const milliseconds = isValidSource ? source.getMilliseconds() : 0;
+
+  const combined = new Date(
+    year,
+    (month ?? 1) - 1,
+    day ?? 1,
+    hours,
+    minutes,
+    seconds,
+    milliseconds,
+  );
+
+  return combined.toISOString();
+}
+
 export function TransactionFormModal({
   isOpen,
   mode,
@@ -237,9 +260,14 @@ export function TransactionFormModal({
   }
 
   function resolveDate() {
-    if (dateOption === 'today') return todayIsoDate();
-    if (dateOption === 'yesterday') return isoDateFromOffset(-1);
-    return customDate;
+    const dateOnly =
+      dateOption === 'today'
+        ? todayIsoDate()
+        : dateOption === 'yesterday'
+          ? isoDateFromOffset(-1)
+          : customDate;
+
+    return combineDateWithTime(dateOnly, initialValues?.date);
   }
 
   async function handleSubmit(event: React.FormEvent) {
