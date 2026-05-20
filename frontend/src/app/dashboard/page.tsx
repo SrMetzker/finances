@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { PageShell } from '@/components/page-shell';
 import { useTransactions } from '@/hooks/use-transactions-api';
@@ -67,6 +68,7 @@ function describeArcPath(
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [showValues, setShowValues] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption>(7);
   const [showAllAccounts, setShowAllAccounts] = useState(false);
@@ -179,7 +181,15 @@ export default function DashboardPage() {
   }, [filteredTransactions, selectedPeriod]);
 
   const expenseCategories = useMemo(() => {
-    const expensesByCategory = new Map<string, { category: string; amount: number; color?: string }>();
+    const expensesByCategory = new Map<string, {
+      key: string;
+      category: string;
+      amount: number;
+      color?: string;
+      rootCategoryId?: string;
+      subCategoryId?: string;
+      isOther?: boolean;
+    }>();
 
     for (const transaction of filteredTransactions) {
       if (transaction.type !== 'SAIDA') {
@@ -188,12 +198,17 @@ export default function DashboardPage() {
 
       const categoryKey = transaction.categoryId || transaction.category?.name?.trim() || 'uncategorized';
       const categoryName = transaction.category?.name?.trim() || 'Sem categoria';
+      const rootCategoryId = transaction.category?.parentCategoryId ?? transaction.categoryId;
+      const subCategoryId = transaction.category?.parentCategoryId ? transaction.categoryId : undefined;
       const current = expensesByCategory.get(categoryKey);
 
       expensesByCategory.set(categoryKey, {
+        key: categoryKey,
         category: categoryName,
         amount: (current?.amount ?? 0) + Number(transaction.amount),
         color: current?.color || transaction.category?.color,
+        rootCategoryId,
+        subCategoryId,
       });
     }
 
@@ -203,7 +218,13 @@ export default function DashboardPage() {
     const top = sorted.slice(0, 5);
     const other = sorted.slice(5).reduce((sum, item) => sum + item.amount, 0);
     if (other > 0) {
-      top.push({ category: 'Outras', amount: other, color: '#71717a' });
+      top.push({
+        key: 'other',
+        category: 'Outras',
+        amount: other,
+        color: '#71717a',
+        isOther: true,
+      });
     }
 
     return top;
@@ -212,6 +233,26 @@ export default function DashboardPage() {
   const hasTransactionsInPeriod = filteredTransactions.length > 0;
   const maxIncome = Math.max(...incomeSeries.map((item) => item.value), 0);
   const totalExpensesByCategory = expenseCategories.reduce((sum, item) => sum + item.amount, 0);
+
+  function goToTransactionsWithCategoryFilter(item: {
+    rootCategoryId?: string;
+    subCategoryId?: string;
+    isOther?: boolean;
+  }) {
+    if (!item.rootCategoryId || item.isOther) {
+      return;
+    }
+
+    const now = new Date();
+    const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const params = new URLSearchParams();
+    params.set('month', month);
+    params.set('categoryRootIds', item.rootCategoryId);
+    if (item.subCategoryId) {
+      params.set('categorySubIds', item.subCategoryId);
+    }
+    router.push(`/transactions?${params.toString()}`);
+  }
 
   return (
     <PageShell
@@ -436,7 +477,7 @@ export default function DashboardPage() {
 
                         return (
                           <path
-                            key={item.category}
+                            key={item.key}
                             d={describeArcPath(70, 70, 58, startAngle, endAngle)}
                             fill={resolveChartColor(item.color, index)}
                             stroke="rgba(12, 14, 22, 0.75)"
@@ -453,8 +494,14 @@ export default function DashboardPage() {
                       const percent = (item.amount / totalExpensesByCategory) * 100;
 
                       return (
-                        <div key={item.category} className="flex items-center justify-between gap-3 text-sm">
-                          <div className="flex min-w-0 items-center gap-2">
+                        <button
+                          key={item.key}
+                          type="button"
+                          onClick={() => goToTransactionsWithCategoryFilter(item)}
+                          disabled={item.isOther || !item.rootCategoryId}
+                          className="flex w-full items-center justify-between gap-3 rounded-xl px-1 py-1 text-sm transition hover:bg-white/5 disabled:cursor-default disabled:hover:bg-transparent"
+                        >
+                          <div className="flex min-w-0 items-center gap-2 text-left">
                             <span
                               className="h-2.5 w-2.5 rounded-full"
                               style={{ backgroundColor: resolveChartColor(item.color, index) }}
@@ -467,7 +514,7 @@ export default function DashboardPage() {
                               {formatCurrency(item.amount, workspace?.currency ?? 'EUR')}
                             </p>
                           </div>
-                        </div>
+                        </button>
                       );
                     })}
                   </div>
