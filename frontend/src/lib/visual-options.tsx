@@ -32,6 +32,46 @@ import {
   Gift,
   Dumbbell,
   Tag,
+  Coins,
+  Calculator,
+  BarChart3,
+  PieChart,
+  CirclePercent,
+  ReceiptText,
+  BadgePercent,
+  Handshake,
+  Luggage,
+  MapPin,
+  Compass,
+  Navigation,
+  Globe,
+  Camera,
+  BaggageClaim,
+  Ticket,
+  Bike,
+  Ship,
+  TramFront,
+  TrainFront,
+  PlaneTakeoff,
+  PlaneLanding,
+  CarFront,
+  BusFront,
+  Music,
+  Film,
+  Popcorn,
+  PartyPopper,
+  BookOpen,
+  Tv,
+  Puzzle,
+  Beer,
+  Home,
+  Sofa,
+  BedDouble,
+  Bath,
+  Wrench,
+  Hammer,
+  Lightbulb,
+  KeyRound,
 } from 'lucide-react';
 
 export type VisualIconName =
@@ -66,7 +106,47 @@ export type VisualIconName =
   | 'shield'
   | 'gift'
   | 'dumbbell'
-  | 'tag';
+  | 'tag'
+  | 'coins'
+  | 'calculator'
+  | 'bar-chart-3'
+  | 'pie-chart'
+  | 'circle-percent'
+  | 'receipt-text'
+  | 'badge-percent'
+  | 'handshake'
+  | 'luggage'
+  | 'map-pin'
+  | 'compass'
+  | 'navigation'
+  | 'globe'
+  | 'camera'
+  | 'baggage-claim'
+  | 'ticket'
+  | 'bike'
+  | 'ship'
+  | 'tram-front'
+  | 'train-front'
+  | 'plane-takeoff'
+  | 'plane-landing'
+  | 'car-front'
+  | 'bus-front'
+  | 'music'
+  | 'film'
+  | 'popcorn'
+  | 'party-popper'
+  | 'book-open'
+  | 'tv'
+  | 'puzzle'
+  | 'beer'
+  | 'home'
+  | 'sofa'
+  | 'bed-double'
+  | 'bath'
+  | 'wrench'
+  | 'hammer'
+  | 'lightbulb'
+  | 'key-round';
 
 export const ICON_COMPONENTS: Record<VisualIconName, LucideIcon> = {
   wallet: Wallet,
@@ -101,6 +181,46 @@ export const ICON_COMPONENTS: Record<VisualIconName, LucideIcon> = {
   gift: Gift,
   dumbbell: Dumbbell,
   tag: Tag,
+  coins: Coins,
+  calculator: Calculator,
+  'bar-chart-3': BarChart3,
+  'pie-chart': PieChart,
+  'circle-percent': CirclePercent,
+  'receipt-text': ReceiptText,
+  'badge-percent': BadgePercent,
+  handshake: Handshake,
+  luggage: Luggage,
+  'map-pin': MapPin,
+  compass: Compass,
+  navigation: Navigation,
+  globe: Globe,
+  camera: Camera,
+  'baggage-claim': BaggageClaim,
+  ticket: Ticket,
+  bike: Bike,
+  ship: Ship,
+  'tram-front': TramFront,
+  'train-front': TrainFront,
+  'plane-takeoff': PlaneTakeoff,
+  'plane-landing': PlaneLanding,
+  'car-front': CarFront,
+  'bus-front': BusFront,
+  music: Music,
+  film: Film,
+  popcorn: Popcorn,
+  'party-popper': PartyPopper,
+  'book-open': BookOpen,
+  tv: Tv,
+  puzzle: Puzzle,
+  beer: Beer,
+  home: Home,
+  sofa: Sofa,
+  'bed-double': BedDouble,
+  bath: Bath,
+  wrench: Wrench,
+  hammer: Hammer,
+  lightbulb: Lightbulb,
+  'key-round': KeyRound,
 };
 
 export const ICON_OPTIONS: Array<{ id: VisualIconName; label: string }> = [
@@ -136,6 +256,46 @@ export const ICON_OPTIONS: Array<{ id: VisualIconName; label: string }> = [
   { id: 'gift', label: 'Presente' },
   { id: 'dumbbell', label: 'Esporte' },
   { id: 'tag', label: 'Categoria' },
+  { id: 'coins', label: 'Moedas' },
+  { id: 'calculator', label: 'Calculadora' },
+  { id: 'bar-chart-3', label: 'Grafico de barras' },
+  { id: 'pie-chart', label: 'Grafico pizza' },
+  { id: 'circle-percent', label: 'Percentual' },
+  { id: 'receipt-text', label: 'Comprovante' },
+  { id: 'badge-percent', label: 'Desconto' },
+  { id: 'handshake', label: 'Acordo' },
+  { id: 'luggage', label: 'Bagagem' },
+  { id: 'map-pin', label: 'Localizacao' },
+  { id: 'compass', label: 'Bussola' },
+  { id: 'navigation', label: 'Navegacao' },
+  { id: 'globe', label: 'Mundo' },
+  { id: 'camera', label: 'Camera' },
+  { id: 'baggage-claim', label: 'Esteira bagagem' },
+  { id: 'ticket', label: 'Passagem' },
+  { id: 'bike', label: 'Bicicleta' },
+  { id: 'ship', label: 'Navio' },
+  { id: 'tram-front', label: 'VLT' },
+  { id: 'train-front', label: 'Trem frontal' },
+  { id: 'plane-takeoff', label: 'Decolagem' },
+  { id: 'plane-landing', label: 'Pouso' },
+  { id: 'car-front', label: 'Carro frontal' },
+  { id: 'bus-front', label: 'Onibus frontal' },
+  { id: 'music', label: 'Musica' },
+  { id: 'film', label: 'Filme' },
+  { id: 'popcorn', label: 'Pipoca' },
+  { id: 'party-popper', label: 'Festa' },
+  { id: 'book-open', label: 'Livro' },
+  { id: 'tv', label: 'TV' },
+  { id: 'puzzle', label: 'Quebra-cabeca' },
+  { id: 'beer', label: 'Cerveja' },
+  { id: 'home', label: 'Lar' },
+  { id: 'sofa', label: 'Sofa' },
+  { id: 'bed-double', label: 'Quarto' },
+  { id: 'bath', label: 'Banheiro' },
+  { id: 'wrench', label: 'Manutencao' },
+  { id: 'hammer', label: 'Reforma' },
+  { id: 'lightbulb', label: 'Energia' },
+  { id: 'key-round', label: 'Chaves' },
 ];
 
 export const COLOR_OPTIONS = [
