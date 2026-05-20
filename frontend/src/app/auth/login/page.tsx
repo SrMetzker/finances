@@ -68,7 +68,7 @@ export default function LoginPage() {
       await login(email, password);
       // Redirect to dashboard
       setTimeout(() => {
-        router.push('/');
+        router.push('/dashboard');
       }, 500);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao fazer login');
@@ -93,7 +93,7 @@ export default function LoginPage() {
       });
 
       setTimeout(() => {
-        router.push('/');
+        router.push('/dashboard');
       }, 500);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar conta');
