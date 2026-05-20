@@ -13,6 +13,7 @@ import {
   EyeOff,
   ArrowUp,
   ArrowDown,
+  Minus,
   LayoutGrid,
   Plus,
   ChevronDown,
@@ -74,14 +75,52 @@ export default function DashboardPage() {
   const { workspaceId, workspace, workspaces, setWorkspaceId } = useAuth();
 
   const totalBalance = accounts.reduce((s, a) => s + Number(a.currentBalance), 0);
-  const totalIncome = transactions.filter((t) => t.type === 'ENTRADA').reduce(
-    (s, t) => s + Number(t.amount),
-    0,
-  );
-  const totalExpense = transactions.filter((t) => t.type === 'SAIDA').reduce(
-    (s, t) => s + Number(t.amount),
-    0,
-  );
+
+  const monthlyBalance = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    return transactions.reduce((sum, transaction) => {
+      const date = new Date(transaction.date);
+      if (Number.isNaN(date.getTime())) {
+        return sum;
+      }
+
+      if (date.getMonth() !== currentMonth || date.getFullYear() !== currentYear) {
+        return sum;
+      }
+
+      if (transaction.type === 'ENTRADA') {
+        return sum + Number(transaction.amount);
+      }
+
+      if (transaction.type === 'SAIDA') {
+        return sum - Number(transaction.amount);
+      }
+
+      return sum;
+    }, 0);
+  }, [transactions]);
+
+  const monthlyBalanceTone =
+    monthlyBalance > 0
+      ? {
+          wrapperClass: 'text-green-400',
+          iconBgClass: 'bg-green-600',
+          ValueIcon: ArrowUp,
+        }
+      : monthlyBalance < 0
+        ? {
+            wrapperClass: 'text-red-400',
+            iconBgClass: 'bg-red-600',
+            ValueIcon: ArrowDown,
+          }
+        : {
+            wrapperClass: 'text-zinc-400',
+            iconBgClass: 'bg-zinc-600',
+            ValueIcon: Minus,
+          };
 
   const money = (value: number) =>
     showValues ? formatCurrency(value, workspace?.currency ?? 'EUR') : '••••';
@@ -209,28 +248,21 @@ export default function DashboardPage() {
           {showValues ? <Eye size={18} /> : <EyeOff size={18} />}
         </button>
 
-        <div className="mt-5 flex justify-center gap-12">
-          {/* income */}
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
-              <ArrowUp size={16} />
-            </div>
-            <div className="text-left">
-              <p className="text-xs text-zinc-400">Receitas</p>
-              <p className="text-sm font-semibold text-green-400">{money(totalIncome)}</p>
-            </div>
+        <Link
+          href="/transactions"
+          className="brand-panel mt-5 mx-auto flex w-full max-w-64 items-center justify-center gap-3 rounded-2xl border border-white/8 px-4 py-3 transition hover:border-white/15"
+          aria-label="Abrir transações"
+        >
+          <div className={`h-9 w-9 rounded-full ${monthlyBalanceTone.iconBgClass} flex items-center justify-center flex-shrink-0`}>
+            <monthlyBalanceTone.ValueIcon size={16} />
           </div>
-          {/* expense */}
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-red-600 flex items-center justify-center flex-shrink-0">
-              <ArrowDown size={16} />
-            </div>
-            <div className="text-left">
-              <p className="text-xs text-zinc-400">Despesas</p>
-              <p className="text-sm font-semibold text-red-400">{money(totalExpense)}</p>
-            </div>
+          <div className="text-left">
+            <p className="text-xs text-zinc-400">Balanço mensal</p>
+            <p className={`text-sm font-semibold ${monthlyBalanceTone.wrapperClass}`}>
+              {money(monthlyBalance)}
+            </p>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* accounts card */}
