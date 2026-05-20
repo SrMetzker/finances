@@ -26,6 +26,7 @@ export function TransactionDetailsModal({
       initialValues={{
         amount: transaction.amount,
         description: transaction.description,
+        note: transaction.note,
         date: transaction.date,
         isPaid: transaction.isPaid,
         isRecurring: transaction.isRecurring,
