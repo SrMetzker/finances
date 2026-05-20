@@ -59,6 +59,21 @@ const TYPE_COLOR: Record<string, string> = {
   TRANSFERENCIA: 'text-blue-400',
 };
 
+function formatDayGroupLabel(dateKey: string) {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  const safeDate = new Date(year, (month ?? 1) - 1, day ?? 1);
+
+  if (Number.isNaN(safeDate.getTime())) {
+    return dateKey;
+  }
+
+  const weekdayRaw = safeDate.toLocaleDateString('pt-BR', { weekday: 'long' });
+  const weekday = weekdayRaw.replace('-feira', '');
+  const weekdayCapitalized = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+
+  return `${weekdayCapitalized}, ${String(day).padStart(2, '0')}`;
+}
+
 export default function TransactionsPage() {
   const searchParams = useSearchParams();
   const lastHydratedQueryRef = useRef('');
@@ -163,6 +178,26 @@ export default function TransactionsPage() {
     () => filtered.find((transaction) => transaction.id === selectedTransactionId) ?? null,
     [filtered, selectedTransactionId],
   );
+
+  const groupedTransactions = useMemo(() => {
+    const groups = new Map<string, typeof filtered>();
+
+    for (const tx of filtered) {
+      const dateKey = tx.date.slice(0, 10);
+      const current = groups.get(dateKey) ?? [];
+      groups.set(dateKey, [...current, tx]);
+    }
+
+    return [...groups.entries()]
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .map(([dateKey, dayTransactions]) => ({
+        dateKey,
+        label: formatDayGroupLabel(dateKey),
+        transactions: [...dayTransactions].sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+        ),
+      }));
+  }, [filtered]);
 
   const totalBalance = accounts.reduce((s, a) => s + a.currentBalance, 0);
   const monthlyBalance = filtered.reduce((s, tx) => {
@@ -285,40 +320,49 @@ export default function TransactionsPage() {
           </p>
         </div>
       ) : (
-        <ul className="mx-4 space-y-2">
-          {filtered.map((tx) => {
-            const CategoryIcon = getIconComponent(tx.category?.icon);
-            const categoryColor = tx.category?.color ?? '#6366F1';
+        <div className="mx-4 space-y-5">
+          {groupedTransactions.map((group) => (
+            <section key={group.dateKey}>
+              <h3 className="mb-2 px-1 text-xl font-semibold tracking-tight text-zinc-100">{group.label}</h3>
+              <ul className="space-y-2">
+                {group.transactions.map((tx) => {
+                  const CategoryIcon = getIconComponent(tx.category?.icon);
+                  const categoryColor = tx.category?.color ?? '#6366F1';
+                  const accountName =
+                    tx.account?.name ?? accounts.find((account) => account.id === tx.accountId)?.name ?? 'Sem conta';
 
-            return (
-              <MobileListItem
-                key={tx.id}
-                onClick={() => setSelectedTransactionId(tx.id)}
-                leading={
-                  <div
-                    className="h-10 w-10 rounded-full border flex items-center justify-center"
-                    style={{
-                      backgroundColor: alphaHex(categoryColor, '22'),
-                      borderColor: alphaHex(categoryColor, '66'),
-                    }}
-                  >
-                    <CategoryIcon size={18} style={{ color: categoryColor }} />
-                  </div>
-                }
-                title={tx.description}
-                subtitle={`${tx.category?.name ?? 'Sem categoria'} · ${new Date(tx.date).toLocaleDateString('pt-BR')}`}
-                value={
-                  <>
-                    {tx.type === 'SAIDA' ? '-' : '+'}
-                    {money(tx.amount)}
-                  </>
-                }
-                valueClassName={TYPE_COLOR[tx.type]}
-                trailing={tx.isPaid ? <p className="text-xs text-zinc-500">Pago</p> : undefined}
-              />
-            );
-          })}
-        </ul>
+                  return (
+                    <MobileListItem
+                      key={tx.id}
+                      onClick={() => setSelectedTransactionId(tx.id)}
+                      leading={
+                        <div
+                          className="h-10 w-10 rounded-full border flex items-center justify-center"
+                          style={{
+                            backgroundColor: alphaHex(categoryColor, '22'),
+                            borderColor: alphaHex(categoryColor, '66'),
+                          }}
+                        >
+                          <CategoryIcon size={18} style={{ color: categoryColor }} />
+                        </div>
+                      }
+                      title={tx.description}
+                      subtitle={`${tx.category?.name ?? 'Sem categoria'} | ${accountName}`}
+                      value={
+                        <>
+                          {tx.type === 'SAIDA' ? '-' : '+'}
+                          {money(tx.amount)}
+                        </>
+                      }
+                      valueClassName={TYPE_COLOR[tx.type]}
+                      trailing={tx.isPaid ? <p className="text-xs text-zinc-500">Pago</p> : undefined}
+                    />
+                  );
+                })}
+              </ul>
+            </section>
+          ))}
+        </div>
       )}
 
       {selectedTransaction && (
