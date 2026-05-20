@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/services/auth.context';
-import { ArrowRight, LogOut } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, LogOut } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,6 +17,8 @@ export default function LoginPage() {
   const [workspaceName, setWorkspaceName] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // If already authenticated, show logout option
   if (isAuthenticated && user) {
@@ -66,7 +68,7 @@ export default function LoginPage() {
       await login(email, password);
       // Redirect to dashboard
       setTimeout(() => {
-        router.push('/');
+        router.push('/dashboard');
       }, 500);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao fazer login');
@@ -91,7 +93,7 @@ export default function LoginPage() {
       });
 
       setTimeout(() => {
-        router.push('/');
+        router.push('/dashboard');
       }, 500);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar conta');
@@ -163,30 +165,52 @@ export default function LoginPage() {
 
             <div>
               <label className="block text-sm font-medium text-zinc-200 mb-2">Senha</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
-                className="brand-panel w-full rounded-2xl border border-white/8 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-lime-300 disabled:opacity-50"
-                placeholder="•••••••••"
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                  className="brand-panel w-full rounded-2xl border border-white/8 px-4 py-2 pr-12 text-white placeholder-zinc-500 focus:outline-none focus:border-lime-300 disabled:opacity-50"
+                  placeholder="•••••••••"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  disabled={isLoading}
+                  className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-zinc-400 transition-colors hover:text-zinc-200 disabled:opacity-50"
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
 
             {mode === 'register' && (
               <>
                 <div>
                   <label className="block text-sm font-medium text-zinc-200 mb-2">Confirmar senha</label>
-                  <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    disabled={isLoading}
-                    className="brand-panel w-full rounded-2xl border border-white/8 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-lime-300 disabled:opacity-50"
-                    placeholder="Repita a senha"
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      disabled={isLoading}
+                      className="brand-panel w-full rounded-2xl border border-white/8 px-4 py-2 pr-12 text-white placeholder-zinc-500 focus:outline-none focus:border-lime-300 disabled:opacity-50"
+                      placeholder="Repita a senha"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword((prev) => !prev)}
+                      disabled={isLoading}
+                      className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-zinc-400 transition-colors hover:text-zinc-200 disabled:opacity-50"
+                      aria-label={showConfirmPassword ? 'Ocultar confirmação de senha' : 'Mostrar confirmação de senha'}
+                    >
+                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </div>
 
                 <div>

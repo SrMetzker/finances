@@ -39,15 +39,6 @@ export function QuickActionsMenu({
 
   return (
     <>
-      {isOpen && (
-        <button
-          type="button"
-          aria-label="Fechar menu de ações"
-          onClick={onToggle}
-          className="fixed inset-0 z-40 bg-black/75"
-        />
-      )}
-
       <div className="relative z-50 flex flex-1 justify-center items-center">
         {isOpen && (
           <div className="pointer-events-none fixed bottom-16 left-1/2">

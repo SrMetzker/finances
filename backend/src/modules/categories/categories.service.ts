@@ -67,32 +67,34 @@ export class CategoriesService {
       throw new NotFoundException('Categoria não encontrada.');
     }
 
+    const updateData: UpdateCategoryDto = { ...dto };
+
     if (current.type === 'TRANSFERENCIA') {
       throw new BadRequestException(
         'Categoria de transferência é interna do sistema.',
       );
     }
 
-    if (dto.type) {
-      this.assertTransferCategoryNotAllowed(dto.type);
+    if (updateData.type) {
+      this.assertTransferCategoryNotAllowed(updateData.type);
     }
 
-    if (dto.parentCategoryId !== undefined) {
-      if (dto.parentCategoryId === id) {
+    if (updateData.parentCategoryId !== undefined) {
+      if (updateData.parentCategoryId === id) {
         throw new BadRequestException('Categoria não pode ser pai dela mesma.');
       }
 
-      if (dto.parentCategoryId === null) {
+      if (updateData.parentCategoryId === null) {
         // permitido converter subcategoria em categoria raiz
       } else {
         const parent = await this.categoriesRepository.findById(
           workspaceId,
-          dto.parentCategoryId,
+          updateData.parentCategoryId,
         );
         if (!parent) {
           throw new BadRequestException('Categoria pai não encontrada.');
         }
-        if (parent.type !== (dto.type ?? current.type)) {
+        if (parent.type !== (updateData.type ?? current.type)) {
           throw new BadRequestException(
             'Subcategoria deve ter o mesmo tipo da categoria pai.',
           );
@@ -102,17 +104,30 @@ export class CategoriesService {
             'Não é permitido criar subcategoria de subcategoria.',
           );
         }
+
+        // Subcategoria sempre herda a cor da nova categoria pai.
+        updateData.color = parent.color;
       }
     }
 
-    if (dto.name && dto.name.trim() !== current.name) {
+    const nextName = updateData.name?.trim() ?? current.name;
+    const nextParentId =
+      updateData.parentCategoryId !== undefined
+        ? updateData.parentCategoryId
+        : current.parentCategoryId;
+    const shouldCheckDuplicate =
+      (updateData.name !== undefined && updateData.name.trim() !== current.name) ||
+      (updateData.parentCategoryId !== undefined &&
+        updateData.parentCategoryId !== current.parentCategoryId);
+
+    if (shouldCheckDuplicate) {
       const parentId =
-        dto.parentCategoryId !== undefined
-          ? dto.parentCategoryId
+        updateData.parentCategoryId !== undefined
+          ? updateData.parentCategoryId
           : current.parentCategoryId;
       const duplicate = await this.categoriesRepository.findByName(
         workspaceId,
-        dto.name.trim(),
+        nextName,
         parentId ?? null,
       );
       if (duplicate && duplicate.id !== id) {
@@ -124,16 +139,20 @@ export class CategoriesService {
       }
     }
 
-    const result = await this.categoriesRepository.update(workspaceId, id, dto);
+    const result = await this.categoriesRepository.update(
+      workspaceId,
+      id,
+      updateData,
+    );
     if (result.count === 0) {
       throw new NotFoundException('Categoria não encontrada.');
     }
 
-    if (dto.color && !current.parentCategoryId) {
+    if (updateData.color && !current.parentCategoryId) {
       await this.categoriesRepository.updateChildrenColor(
         workspaceId,
         id,
-        dto.color,
+        updateData.color,
       );
     }
 

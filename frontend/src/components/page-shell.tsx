@@ -224,9 +224,18 @@ export function PageShell({
       {/* content */}
       <main className={`flex-1 ${hideBottomNav ? '' : 'pb-20'}`}>{children}</main>
 
+      {showQuickActions && !hideBottomNav && (
+        <button
+          type="button"
+          aria-label="Fechar menu de ações rápidas"
+          onClick={() => setShowQuickActions(false)}
+          className="fixed inset-0 z-40 bg-black/75"
+        />
+      )}
+
       {/* bottom nav */}
       {!hideBottomNav && (
-        <nav className="brand-panel fixed bottom-0 left-0 right-0 flex h-16 items-end border-t border-white/5 backdrop-blur-xl">
+        <nav className="brand-panel fixed bottom-0 left-0 right-0 z-50 flex h-16 items-end border-t border-white/5 backdrop-blur-xl">
           {BOTTOM_NAV.map((item) =>
             item === null ? (
               <QuickActionsMenu
@@ -242,6 +251,8 @@ export function PageShell({
                 href={item.href}
                 className={`flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-[10px] transition-colors ${
                   isBottomNavItemActive(item.href) ? 'text-lime-300' : 'text-zinc-500'
+                } ${
+                  showQuickActions ? 'pointer-events-none opacity-50' : ''
                 }`}
               >
                 <item.icon size={20} />

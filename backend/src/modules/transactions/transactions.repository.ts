@@ -57,7 +57,7 @@ export class TransactionsRepository {
         destinationAccount: true,
         category: true,
       },
-      orderBy: { date: 'desc' },
+      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
     });
   }
 

@@ -12,7 +12,7 @@ import {
 } from '@/lib/visual-options';
 import type { CategoryType } from '@/services/api.types';
 import { notify } from '@/services/toast';
-import { MoreVertical, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { ArrowRightLeft, MoreVertical, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 export default function CategoriesPage() {
   const { categories, createCategory, updateCategory, deleteCategory } = useCategories();
@@ -20,6 +20,14 @@ export default function CategoriesPage() {
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [parentCategoryId, setParentCategoryId] = useState<string | null>(null);
   const [openMenuCategoryId, setOpenMenuCategoryId] = useState<string | null>(null);
+  const [openMenuSubcategoryId, setOpenMenuSubcategoryId] = useState<string | null>(null);
+  const [movingSubcategory, setMovingSubcategory] = useState<{
+    id: string;
+    name: string;
+    type: CategoryType;
+    parentCategoryId?: string | null;
+  } | null>(null);
+  const [moveDestinationId, setMoveDestinationId] = useState('');
   const [name, setName] = useState('');
   const [type, setType] = useState<CategoryType>('SAIDA');
   const [activeType, setActiveType] = useState<CategoryType>('SAIDA');
@@ -40,6 +48,21 @@ export default function CategoriesPage() {
       window.clearTimeout(timeoutId);
     };
   }, [isModalOpen]);
+
+  useEffect(() => {
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target?.closest('[data-context-menu-root="true"]')) {
+        setOpenMenuCategoryId(null);
+        setOpenMenuSubcategoryId(null);
+      }
+    };
+
+    window.addEventListener('pointerdown', handlePointerDown);
+    return () => {
+      window.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, []);
 
   const isEditing = editingCategoryId !== null;
   const visibleCategories = useMemo(
@@ -74,10 +97,23 @@ export default function CategoriesPage() {
     return categories.find((category) => category.id === parentCategoryId)?.name ?? null;
   }, [categories, parentCategoryId]);
 
+  const moveDestinationOptions = useMemo(() => {
+    if (!movingSubcategory) {
+      return [];
+    }
+
+    return rootCategories.filter(
+      (category) =>
+        category.type === movingSubcategory.type &&
+        category.id !== movingSubcategory.parentCategoryId,
+    );
+  }, [rootCategories, movingSubcategory]);
+
   function openCreateModal() {
     setEditingCategoryId(null);
     setParentCategoryId(null);
     setOpenMenuCategoryId(null);
+    setOpenMenuSubcategoryId(null);
     setName('');
     setType(activeType);
     setIcon(DEFAULT_CATEGORY_ICON);
@@ -93,6 +129,7 @@ export default function CategoriesPage() {
     setEditingCategoryId(null);
     setParentCategoryId(category.id);
     setOpenMenuCategoryId(null);
+    setOpenMenuSubcategoryId(null);
     setName('');
     setType(category.type);
     setIcon(DEFAULT_CATEGORY_ICON);
@@ -111,6 +148,7 @@ export default function CategoriesPage() {
     setEditingCategoryId(category.id);
     setParentCategoryId(category.parentCategoryId ?? null);
     setOpenMenuCategoryId(null);
+    setOpenMenuSubcategoryId(null);
     setName(category.name);
     setType(category.type);
     setIcon((category.icon as VisualIconName) || DEFAULT_CATEGORY_ICON);
@@ -141,6 +179,7 @@ export default function CategoriesPage() {
     try {
       await deleteCategory(category.id);
       setOpenMenuCategoryId(null);
+      setOpenMenuSubcategoryId(null);
       notify.success('Categoria excluída com sucesso.');
     } catch (error) {
       notify.error(error, 'Não foi possível excluir a categoria.');
@@ -174,6 +213,66 @@ export default function CategoriesPage() {
       notify.error(error, 'Não foi possível salvar a categoria.');
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  function openMoveSubcategoryModal(subcategory: {
+    id: string;
+    name: string;
+    type: CategoryType;
+    parentCategoryId?: string | null;
+  }) {
+    setOpenMenuSubcategoryId(null);
+    setOpenMenuCategoryId(null);
+    setMovingSubcategory(subcategory);
+    setMoveDestinationId('');
+  }
+
+  function closeMoveSubcategoryModal() {
+    setMovingSubcategory(null);
+    setMoveDestinationId('');
+  }
+
+  async function handleConfirmMoveSubcategory() {
+    if (!movingSubcategory || !moveDestinationId) {
+      return;
+    }
+
+    const destination = categories.find((category) => category.id === moveDestinationId);
+    if (!destination) {
+      notify.error('Categoria de destino inválida.', 'Selecione outra categoria para mover.');
+      return;
+    }
+
+    const duplicateInDestination = categories.some(
+      (category) =>
+        category.id !== movingSubcategory.id &&
+        category.parentCategoryId === destination.id &&
+        category.name.trim().toLowerCase() === movingSubcategory.name.trim().toLowerCase(),
+    );
+
+    if (duplicateInDestination) {
+      notify.error(
+        'Já existe uma subcategoria com esse nome na categoria de destino.',
+        'Escolha outra categoria para mover.',
+      );
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Mover subcategoria "${movingSubcategory.name}" para "${destination.name}"?`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await updateCategory(movingSubcategory.id, { parentCategoryId: destination.id });
+      notify.success('Subcategoria movida com sucesso.');
+      closeMoveSubcategoryModal();
+    } catch (error) {
+      notify.error(error, 'Não foi possível mover a subcategoria.');
     }
   }
 
@@ -242,14 +341,15 @@ export default function CategoriesPage() {
                     <Plus size={14} />
                   </button>
 
-                  <div className="relative">
+                  <div className="relative" data-context-menu-root="true">
                     <button
                       type="button"
-                      onClick={() =>
+                      onClick={() => {
+                        setOpenMenuSubcategoryId(null);
                         setOpenMenuCategoryId((current) =>
                           current === cat.id ? null : cat.id,
-                        )
-                      }
+                        );
+                      }}
                       className="text-zinc-400 transition hover:text-zinc-200"
                       aria-label={`Abrir menu da categoria ${cat.name}`}
                     >
@@ -300,23 +400,58 @@ export default function CategoriesPage() {
                         />
                         <span className="truncate text-sm">{sub.name}</span>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          openEditModal({
-                            id: sub.id,
-                            name: sub.name,
-                            type: sub.type as CategoryType,
-                            icon: sub.icon,
-                            color: sub.color,
-                            parentCategoryId: sub.parentCategoryId,
-                          })
-                        }
-                        className="shrink-0 text-zinc-500 transition hover:text-zinc-200"
-                        aria-label={`Editar subcategoria ${sub.name}`}
-                      >
-                        <Pencil size={14} />
-                      </button>
+                      <div className="relative shrink-0" data-context-menu-root="true">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOpenMenuCategoryId(null);
+                            setOpenMenuSubcategoryId((current) =>
+                              current === sub.id ? null : sub.id,
+                            );
+                          }}
+                          className="text-zinc-500 transition hover:text-zinc-200"
+                          aria-label={`Abrir menu da subcategoria ${sub.name}`}
+                        >
+                          <MoreVertical size={14} />
+                        </button>
+
+                        {openMenuSubcategoryId === sub.id && (
+                          <div className="brand-panel absolute right-0 top-6 z-20 min-w-40 rounded-xl border border-white/10 p-1 shadow-xl">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openEditModal({
+                                  id: sub.id,
+                                  name: sub.name,
+                                  type: sub.type as CategoryType,
+                                  icon: sub.icon,
+                                  color: sub.color,
+                                  parentCategoryId: sub.parentCategoryId,
+                                })
+                              }
+                              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-zinc-200 transition hover:bg-white/8"
+                            >
+                              <Pencil size={14} />
+                              Editar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openMoveSubcategoryModal({
+                                  id: sub.id,
+                                  name: sub.name,
+                                  type: sub.type as CategoryType,
+                                  parentCategoryId: sub.parentCategoryId,
+                                })
+                              }
+                              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-zinc-200 transition hover:bg-white/8"
+                            >
+                              <ArrowRightLeft size={14} />
+                              Mover
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -435,6 +570,68 @@ export default function CategoriesPage() {
                 {isSaving ? 'Salvando...' : isEditing ? 'Salvar alterações' : 'Criar categoria'}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {movingSubcategory && (
+        <div className="fixed inset-0 z-[90]">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/70"
+            onClick={closeMoveSubcategoryModal}
+            aria-label="Fechar modal de mover subcategoria"
+          />
+
+          <div className="brand-panel absolute inset-x-0 bottom-0 rounded-t-3xl border border-white/6 p-6 shadow-2xl">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Mover subcategoria</h2>
+              <button
+                type="button"
+                onClick={closeMoveSubcategoryModal}
+                className="text-zinc-400"
+                aria-label="Fechar"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-sm text-zinc-300">
+                Escolha a nova categoria para <span className="font-semibold">{movingSubcategory.name}</span>.
+              </p>
+
+              {moveDestinationOptions.length > 0 ? (
+                <label className="block">
+                  <span className="mb-1 block text-sm text-zinc-400">Categoria de destino</span>
+                  <select
+                    value={moveDestinationId}
+                    onChange={(e) => setMoveDestinationId(e.target.value)}
+                    className="brand-panel w-full rounded-2xl border border-white/8 px-3 py-2 outline-none focus:border-lime-300"
+                  >
+                    <option value="">Selecione uma categoria</option>
+                    {moveDestinationOptions.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : (
+                <p className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-400">
+                  Não há outra categoria disponível para mover esta subcategoria.
+                </p>
+              )}
+
+              <button
+                type="button"
+                disabled={!moveDestinationId || moveDestinationOptions.length === 0}
+                onClick={() => void handleConfirmMoveSubcategory()}
+                className="brand-gradient mt-2 flex w-full items-center justify-center gap-2 rounded-2xl py-2.5 font-semibold disabled:opacity-60"
+              >
+                Confirmar movimentação
+              </button>
+            </div>
           </div>
         </div>
       )}

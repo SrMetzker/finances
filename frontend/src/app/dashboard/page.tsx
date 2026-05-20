@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
 import { PageShell } from '@/components/page-shell';
 import { useTransactions } from '@/hooks/use-transactions-api';
 import { useAccounts } from '@/hooks/use-accounts-api';
@@ -13,8 +14,10 @@ import {
   EyeOff,
   ArrowUp,
   ArrowDown,
+  Minus,
   LayoutGrid,
   Plus,
+  ChevronDown,
 } from 'lucide-react';
 
 type PeriodOption = 7 | 14 | 30;
@@ -65,21 +68,62 @@ function describeArcPath(
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [showValues, setShowValues] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption>(7);
+  const [showAllAccounts, setShowAllAccounts] = useState(false);
+  const [activeIncomePointKey, setActiveIncomePointKey] = useState<string | null>(null);
   const { transactions } = useTransactions();
   const { accounts, isLoading: accountsLoading } = useAccounts();
   const { workspaceId, workspace, workspaces, setWorkspaceId } = useAuth();
 
   const totalBalance = accounts.reduce((s, a) => s + Number(a.currentBalance), 0);
-  const totalIncome = transactions.filter((t) => t.type === 'ENTRADA').reduce(
-    (s, t) => s + Number(t.amount),
-    0,
-  );
-  const totalExpense = transactions.filter((t) => t.type === 'SAIDA').reduce(
-    (s, t) => s + Number(t.amount),
-    0,
-  );
+
+  const monthlyBalance = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    return transactions.reduce((sum, transaction) => {
+      const date = new Date(transaction.date);
+      if (Number.isNaN(date.getTime())) {
+        return sum;
+      }
+
+      if (date.getMonth() !== currentMonth || date.getFullYear() !== currentYear) {
+        return sum;
+      }
+
+      if (transaction.type === 'ENTRADA') {
+        return sum + Number(transaction.amount);
+      }
+
+      if (transaction.type === 'SAIDA') {
+        return sum - Number(transaction.amount);
+      }
+
+      return sum;
+    }, 0);
+  }, [transactions]);
+
+  const monthlyBalanceTone =
+    monthlyBalance > 0
+      ? {
+          wrapperClass: 'text-green-400',
+          iconBgClass: 'bg-green-600',
+          ValueIcon: ArrowUp,
+        }
+      : monthlyBalance < 0
+        ? {
+            wrapperClass: 'text-red-400',
+            iconBgClass: 'bg-red-600',
+            ValueIcon: ArrowDown,
+          }
+        : {
+            wrapperClass: 'text-zinc-400',
+            iconBgClass: 'bg-zinc-600',
+            ValueIcon: Minus,
+          };
 
   const money = (value: number) =>
     showValues ? formatCurrency(value, workspace?.currency ?? 'EUR') : '••••';
@@ -138,7 +182,15 @@ export default function DashboardPage() {
   }, [filteredTransactions, selectedPeriod]);
 
   const expenseCategories = useMemo(() => {
-    const expensesByCategory = new Map<string, { category: string; amount: number; color?: string }>();
+    const expensesByCategory = new Map<string, {
+      key: string;
+      category: string;
+      amount: number;
+      color?: string;
+      rootCategoryId?: string;
+      subCategoryId?: string;
+      isOther?: boolean;
+    }>();
 
     for (const transaction of filteredTransactions) {
       if (transaction.type !== 'SAIDA') {
@@ -147,12 +199,17 @@ export default function DashboardPage() {
 
       const categoryKey = transaction.categoryId || transaction.category?.name?.trim() || 'uncategorized';
       const categoryName = transaction.category?.name?.trim() || 'Sem categoria';
+      const rootCategoryId = transaction.category?.parentCategoryId ?? transaction.categoryId;
+      const subCategoryId = transaction.category?.parentCategoryId ? transaction.categoryId : undefined;
       const current = expensesByCategory.get(categoryKey);
 
       expensesByCategory.set(categoryKey, {
+        key: categoryKey,
         category: categoryName,
         amount: (current?.amount ?? 0) + Number(transaction.amount),
         color: current?.color || transaction.category?.color,
+        rootCategoryId,
+        subCategoryId,
       });
     }
 
@@ -162,7 +219,13 @@ export default function DashboardPage() {
     const top = sorted.slice(0, 5);
     const other = sorted.slice(5).reduce((sum, item) => sum + item.amount, 0);
     if (other > 0) {
-      top.push({ category: 'Outras', amount: other, color: '#71717a' });
+      top.push({
+        key: 'other',
+        category: 'Outras',
+        amount: other,
+        color: '#71717a',
+        isOther: true,
+      });
     }
 
     return top;
@@ -171,6 +234,50 @@ export default function DashboardPage() {
   const hasTransactionsInPeriod = filteredTransactions.length > 0;
   const maxIncome = Math.max(...incomeSeries.map((item) => item.value), 0);
   const totalExpensesByCategory = expenseCategories.reduce((sum, item) => sum + item.amount, 0);
+
+  const incomePoints = useMemo(
+    () =>
+      incomeSeries.map((item, index) => {
+        const x = incomeSeries.length === 1 ? 160 : 12 + (index * 296) / (incomeSeries.length - 1);
+        const y = 126 - (item.value / maxIncome) * 100;
+
+        return {
+          ...item,
+          x,
+          y,
+        };
+      }),
+    [incomeSeries, maxIncome],
+  );
+
+  const activeIncomePoint = useMemo(
+    () => incomePoints.find((point) => point.key === activeIncomePointKey) ?? null,
+    [incomePoints, activeIncomePointKey],
+  );
+
+  useEffect(() => {
+    setActiveIncomePointKey(null);
+  }, [selectedPeriod]);
+
+  function goToTransactionsWithCategoryFilter(item: {
+    rootCategoryId?: string;
+    subCategoryId?: string;
+    isOther?: boolean;
+  }) {
+    if (!item.rootCategoryId || item.isOther) {
+      return;
+    }
+
+    const now = new Date();
+    const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const params = new URLSearchParams();
+    params.set('month', month);
+    params.set('categoryRootIds', item.rootCategoryId);
+    if (item.subCategoryId) {
+      params.set('categorySubIds', item.subCategoryId);
+    }
+    router.push(`/transactions?${params.toString()}`);
+  }
 
   return (
     <PageShell
@@ -207,28 +314,21 @@ export default function DashboardPage() {
           {showValues ? <Eye size={18} /> : <EyeOff size={18} />}
         </button>
 
-        <div className="mt-5 flex justify-center gap-12">
-          {/* income */}
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
-              <ArrowUp size={16} />
-            </div>
-            <div className="text-left">
-              <p className="text-xs text-zinc-400">Receitas</p>
-              <p className="text-sm font-semibold text-green-400">{money(totalIncome)}</p>
-            </div>
+        <Link
+          href="/transactions"
+          className="brand-panel mt-5 mx-auto flex w-full max-w-64 items-center justify-center gap-3 rounded-2xl border border-white/8 px-4 py-3 transition hover:border-white/15"
+          aria-label="Abrir transações"
+        >
+          <div className={`h-9 w-9 rounded-full ${monthlyBalanceTone.iconBgClass} flex items-center justify-center flex-shrink-0`}>
+            <monthlyBalanceTone.ValueIcon size={16} />
           </div>
-          {/* expense */}
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-full bg-red-600 flex items-center justify-center flex-shrink-0">
-              <ArrowDown size={16} />
-            </div>
-            <div className="text-left">
-              <p className="text-xs text-zinc-400">Despesas</p>
-              <p className="text-sm font-semibold text-red-400">{money(totalExpense)}</p>
-            </div>
+          <div className="text-left">
+            <p className="text-xs text-zinc-400">Balanço mensal</p>
+            <p className={`text-sm font-semibold ${monthlyBalanceTone.wrapperClass}`}>
+              {money(monthlyBalance)}
+            </p>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* accounts card */}
@@ -239,43 +339,64 @@ export default function DashboardPage() {
           </Link>
           <LayoutGrid size={18} className="text-zinc-400" />
         </div>
-        <ul>
-          {accounts.map((account, i) => {
-            const AccountIcon = getIconComponent(account.icon);
+        {(() => {
+          const sorted = [...accounts].sort((a, b) => Number(b.currentBalance) - Number(a.currentBalance));
+          const visible = showAllAccounts ? sorted : sorted.slice(0, 4);
+          const hidden = sorted.length - 4;
 
-            return (
-            <li
-              key={account.id}
-              className={`flex items-center justify-between py-3 ${
-                i < accounts.length - 1 ? 'border-b border-zinc-700/40' : ''
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className="flex h-10 w-10 items-center justify-center rounded-full border"
-                  style={{
-                    backgroundColor: alphaHex(account.color, '22'),
-                    borderColor: alphaHex(account.color, '66'),
-                  }}
+          return (
+            <>
+              <ul>
+                {visible.map((account, i) => {
+                  const AccountIcon = getIconComponent(account.icon);
+                  const isLast = i === visible.length - 1 && (showAllAccounts || hidden <= 0);
+
+                  return (
+                    <li
+                      key={account.id}
+                      className={`flex items-center justify-between py-3 ${
+                        !isLast ? 'border-b border-zinc-700/40' : ''
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="flex h-10 w-10 items-center justify-center rounded-full border"
+                          style={{
+                            backgroundColor: alphaHex(account.color, '22'),
+                            borderColor: alphaHex(account.color, '66'),
+                          }}
+                        >
+                          <AccountIcon size={16} style={{ color: account.color }} />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{account.name}</p>
+                          <p className="text-sm text-green-400">{money(Number(account.currentBalance))}</p>
+                        </div>
+                      </div>
+                      <button className="font-light text-lime-300" aria-label="Adicionar">
+                        <Plus size={20} />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              {sorted.length > 4 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllAccounts((v) => !v)}
+                  className="flex w-full items-center justify-center gap-1 border-t border-zinc-700/40 pt-3 mt-1 text-xs text-zinc-400 transition-colors hover:text-zinc-200"
                 >
-                  <AccountIcon size={16} style={{ color: account.color }} />
-                </div>
-                <div>
-                  <p className="font-medium text-sm">{account.name}</p>
-                  <p className="text-sm text-green-400">{money(Number(account.currentBalance))}</p>
-                </div>
-              </div>
-              <button className="font-light text-lime-300" aria-label="Adicionar">
-                <Plus size={20} />
-              </button>
-            </li>
-            );
-          })}
-        </ul>
-        <div className="border-t border-zinc-700/40 mt-1 pt-3 flex justify-between text-sm font-semibold">
-          <span>Total</span>
-          <span>{money(totalBalance)}</span>
-        </div>
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform ${showAllAccounts ? 'rotate-180' : ''}`}
+                  />
+                  {showAllAccounts ? 'Ver menos' : `Ver mais ${hidden} conta${hidden > 1 ? 's' : ''}`}
+                </button>
+              )}
+            </>
+          );
+        })()}
       </div>
 
       {/* evolution section */}
@@ -321,7 +442,11 @@ export default function DashboardPage() {
                 <p className="py-10 text-center text-sm text-zinc-400">Sem receitas no período selecionado.</p>
               ) : (
                 <>
-                  <svg viewBox="0 0 320 150" className="h-40 w-full">
+                  <svg
+                    viewBox="0 0 320 150"
+                    className="h-40 w-full"
+                    onClick={() => setActiveIncomePointKey(null)}
+                  >
                     <defs>
                       <linearGradient id="income-line-gradient" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor="#bef264" />
@@ -337,20 +462,72 @@ export default function DashboardPage() {
                       strokeWidth="3"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      points={incomeSeries
-                        .map((item, index) => {
-                          const x = incomeSeries.length === 1 ? 160 : 12 + (index * 296) / (incomeSeries.length - 1);
-                          const y = 126 - (item.value / maxIncome) * 100;
-                          return `${x},${y}`;
-                        })
+                      points={incomePoints
+                        .map((point) => `${point.x},${point.y}`)
                         .join(' ')}
                     />
 
-                    {incomeSeries.map((item, index) => {
-                      const x = incomeSeries.length === 1 ? 160 : 12 + (index * 296) / (incomeSeries.length - 1);
-                      const y = 126 - (item.value / maxIncome) * 100;
-                      return <circle key={item.key} cx={x} cy={y} r="3.5" fill="#bef264" />;
-                    })}
+                    {incomePoints.map((point) => (
+                      <circle
+                        key={point.key}
+                        cx={point.x}
+                        cy={point.y}
+                        r="5"
+                        fill="#bef264"
+                        className="cursor-pointer"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setActiveIncomePointKey((current) =>
+                            current === point.key ? null : point.key,
+                          );
+                        }}
+                      />
+                    ))}
+
+                    {activeIncomePoint && (
+                      <g pointerEvents="none">
+                        {(() => {
+                          const tooltipWidth = 130;
+                          const tooltipHeight = 38;
+                          const tooltipX = Math.min(
+                            Math.max(activeIncomePoint.x - tooltipWidth / 2, 8),
+                            320 - tooltipWidth - 8,
+                          );
+                          const tooltipY = Math.max(activeIncomePoint.y - 52, 8);
+
+                          return (
+                            <>
+                              <rect
+                                x={tooltipX}
+                                y={tooltipY}
+                                width={tooltipWidth}
+                                height={tooltipHeight}
+                                rx="10"
+                                fill="rgba(12, 14, 22, 0.95)"
+                                stroke="rgba(255,255,255,0.16)"
+                              />
+                              <text
+                                x={tooltipX + 10}
+                                y={tooltipY + 16}
+                                fill="#9ca3af"
+                                fontSize="10"
+                              >
+                                {activeIncomePoint.label}
+                              </text>
+                              <text
+                                x={tooltipX + 10}
+                                y={tooltipY + 30}
+                                fill="#e4e4e7"
+                                fontSize="12"
+                                fontWeight="700"
+                              >
+                                {money(activeIncomePoint.value)}
+                              </text>
+                            </>
+                          );
+                        })()}
+                      </g>
+                    )}
                   </svg>
 
                   <div className="mt-1 flex items-center justify-between text-[10px] text-zinc-500">
@@ -381,7 +558,7 @@ export default function DashboardPage() {
 
                         return (
                           <path
-                            key={item.category}
+                            key={item.key}
                             d={describeArcPath(70, 70, 58, startAngle, endAngle)}
                             fill={resolveChartColor(item.color, index)}
                             stroke="rgba(12, 14, 22, 0.75)"
@@ -398,8 +575,14 @@ export default function DashboardPage() {
                       const percent = (item.amount / totalExpensesByCategory) * 100;
 
                       return (
-                        <div key={item.category} className="flex items-center justify-between gap-3 text-sm">
-                          <div className="flex min-w-0 items-center gap-2">
+                        <button
+                          key={item.key}
+                          type="button"
+                          onClick={() => goToTransactionsWithCategoryFilter(item)}
+                          disabled={item.isOther || !item.rootCategoryId}
+                          className="flex w-full items-center justify-between gap-3 rounded-xl px-1 py-1 text-sm transition hover:bg-white/5 disabled:cursor-default disabled:hover:bg-transparent"
+                        >
+                          <div className="flex min-w-0 items-center gap-2 text-left">
                             <span
                               className="h-2.5 w-2.5 rounded-full"
                               style={{ backgroundColor: resolveChartColor(item.color, index) }}
@@ -412,7 +595,7 @@ export default function DashboardPage() {
                               {formatCurrency(item.amount, workspace?.currency ?? 'EUR')}
                             </p>
                           </div>
-                        </div>
+                        </button>
                       );
                     })}
                   </div>
