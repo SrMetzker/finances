@@ -29,7 +29,7 @@ const TYPE_COLOR: Record<string, string> = {
 };
 
 export default function TransactionsPage() {
-  const { month, setMonth, parsed } = useMonthFilter(new Date('2026-04-01'));
+  const { month, setMonth, parsed } = useMonthFilter(new Date());
   const { transactions, updateTransaction, deleteTransaction } = useTransactions(parsed.month, parsed.year);
   const { accounts } = useAccounts();
   const { workspace } = useAuth();
