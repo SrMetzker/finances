@@ -12,6 +12,7 @@ import {
 import { BottomSheetModal } from '@/components/bottom-sheet-modal';
 import { useAccounts } from '@/hooks/use-accounts-api';
 import { useCategories } from '@/hooks/use-categories-api';
+import { useTransactions } from '@/hooks/use-transactions-api';
 import { formatCurrency } from '@/lib/currency';
 import { alphaHex, getIconComponent } from '@/lib/visual-options';
 import { useAuth } from '@/services/auth.context';
@@ -36,6 +37,18 @@ type TransactionFormInitialValues = {
   accountId?: string;
   destinationAccountId?: string;
   categoryId?: string;
+};
+
+type DescriptionSuggestion = {
+  key: string;
+  description: string;
+  accountId?: string;
+  accountName?: string;
+  categoryId?: string;
+  categoryName?: string;
+  usageCount: number;
+  startsWithQuery: boolean;
+  lastDate: number;
 };
 
 function todayIsoDate() {
@@ -84,6 +97,10 @@ function combineDateWithTime(dateOnly: string, sourceDate?: string) {
   return combined.toISOString();
 }
 
+function normalizeText(value: string) {
+  return value.trim().toLowerCase();
+}
+
 export function TransactionFormModal({
   isOpen,
   mode,
@@ -103,6 +120,7 @@ export function TransactionFormModal({
 }) {
   const { accounts } = useAccounts();
   const { categories } = useCategories();
+  const { transactions: historyTransactions } = useTransactions();
   const { workspace } = useAuth();
 
   const [amount, setAmount] = useState('');
@@ -111,6 +129,7 @@ export function TransactionFormModal({
   const [customDate, setCustomDate] = useState(todayIsoDate());
   const [repeat, setRepeat] = useState(false);
   const [description, setDescription] = useState('');
+  const [isDescriptionFocused, setIsDescriptionFocused] = useState(false);
   const [note, setNote] = useState('');
   const [accountId, setAccountId] = useState('');
   const [destinationAccountId, setDestinationAccountId] = useState('');
@@ -122,6 +141,7 @@ export function TransactionFormModal({
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const amountInputRef = useRef<HTMLInputElement>(null);
+  const descriptionInputRef = useRef<HTMLInputElement>(null);
 
   const filteredCategories = useMemo(
     () => categories.filter((category) => category.type === type),
@@ -132,6 +152,73 @@ export function TransactionFormModal({
     if (type === 'TRANSFERENCIA' || filteredCategories.length === 0) return '';
     return filteredCategories[0].id;
   }, [filteredCategories, type]);
+
+  const descriptionSuggestions = useMemo(() => {
+    const query = normalizeText(description);
+    if (query.length < 2) {
+      return [] as DescriptionSuggestion[];
+    }
+
+    const grouped = new Map<string, DescriptionSuggestion>();
+
+    for (const tx of historyTransactions) {
+      if (tx.type !== type) {
+        continue;
+      }
+
+      const txDescription = tx.description?.trim();
+      if (!txDescription) {
+        continue;
+      }
+
+      const normalized = normalizeText(txDescription);
+      if (!normalized.includes(query)) {
+        continue;
+      }
+
+      const txDate = new Date(tx.date).getTime();
+      const lastDate = Number.isNaN(txDate) ? 0 : txDate;
+      const current = grouped.get(normalized);
+
+      if (!current) {
+        grouped.set(normalized, {
+          key: normalized,
+          description: txDescription,
+          accountId: tx.accountId,
+          accountName: tx.account?.name,
+          categoryId: tx.categoryId,
+          categoryName: tx.category?.name,
+          usageCount: 1,
+          startsWithQuery: normalized.startsWith(query),
+          lastDate,
+        });
+        continue;
+      }
+
+      current.usageCount += 1;
+      if (lastDate > current.lastDate) {
+        current.lastDate = lastDate;
+        current.accountId = tx.accountId;
+        current.accountName = tx.account?.name;
+        current.categoryId = tx.categoryId;
+        current.categoryName = tx.category?.name;
+      }
+    }
+
+    return [...grouped.values()]
+      .sort((a, b) => {
+        if (a.startsWithQuery !== b.startsWithQuery) {
+          return a.startsWithQuery ? -1 : 1;
+        }
+
+        if (a.usageCount !== b.usageCount) {
+          return b.usageCount - a.usageCount;
+        }
+
+        return b.lastDate - a.lastDate;
+      })
+      .slice(0, 5);
+  }, [description, historyTransactions, type]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -153,6 +240,7 @@ export function TransactionFormModal({
           : '',
       );
       setDescription(initialValues?.description ?? '');
+      setIsDescriptionFocused(false);
       setNote(initialValues?.note ?? '');
       setCustomDate(initialDate);
       setDateOption(derivedDateOption);
@@ -248,6 +336,29 @@ export function TransactionFormModal({
   function handleCustomDateChange(nextDate: string) {
     setCustomDate(nextDate);
     syncPaidWithDate(nextDate);
+  }
+
+  function handleDescriptionSuggestionSelect(suggestion: DescriptionSuggestion) {
+    setDescription(suggestion.description);
+
+    const accountExists = suggestion.accountId
+      ? accounts.some((account) => account.id === suggestion.accountId)
+      : false;
+    if (accountExists && suggestion.accountId) {
+      setAccountId(suggestion.accountId);
+    }
+
+    if (type !== 'TRANSFERENCIA' && suggestion.categoryId) {
+      const categoryExists = filteredCategories.some(
+        (category) => category.id === suggestion.categoryId,
+      );
+      if (categoryExists) {
+        setCategoryId(suggestion.categoryId);
+      }
+    }
+
+    setIsDescriptionFocused(false);
+    descriptionInputRef.current?.blur();
   }
 
   function handleAccountSelection(selectedId: string) {
@@ -442,15 +553,51 @@ export function TransactionFormModal({
             </div>
           )}
 
-          <div className="flex items-center gap-3 px-5 py-4">
-            <PenLine size={20} className="text-zinc-400 flex-shrink-0" />
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Descrição"
-              className="flex-1 bg-transparent text-zinc-200 outline-none placeholder-zinc-500"
-            />
+          <div className="px-5 py-4">
+            <div className="relative">
+              <div className="flex items-center gap-3">
+                <PenLine size={20} className="text-zinc-400 flex-shrink-0" />
+                <input
+                  ref={descriptionInputRef}
+                  type="text"
+                  value={description}
+                  onFocus={() => setIsDescriptionFocused(true)}
+                  onBlur={() => setIsDescriptionFocused(false)}
+                  onChange={(e) => setDescription(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                      setIsDescriptionFocused(false);
+                    }
+                  }}
+                  placeholder="Descrição"
+                  className="flex-1 bg-transparent text-zinc-200 outline-none placeholder-zinc-500"
+                />
+              </div>
+
+              {isDescriptionFocused && descriptionSuggestions.length > 0 && (
+                <div className="brand-panel absolute left-8 right-0 top-8 z-20 rounded-2xl border border-white/10 p-1.5 shadow-xl">
+                  {descriptionSuggestions.map((suggestion) => (
+                    <button
+                      key={suggestion.key}
+                      type="button"
+                      onMouseDown={(event) => {
+                        event.preventDefault();
+                        handleDescriptionSuggestionSelect(suggestion);
+                      }}
+                      className="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-white/8"
+                    >
+                      <span className="min-w-0">
+                        <p className="truncate text-sm font-medium text-zinc-100">{suggestion.description}</p>
+                        <p className="truncate text-xs text-zinc-400">
+                          {suggestion.categoryName ?? 'Sem categoria'} · {suggestion.accountName ?? 'Sem conta'}
+                        </p>
+                      </span>
+                      <span className="text-[10px] text-zinc-500">{suggestion.usageCount}x</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {type !== 'TRANSFERENCIA' && (
