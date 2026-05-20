@@ -15,6 +15,7 @@ import {
   ArrowDown,
   LayoutGrid,
   Plus,
+  ChevronDown,
 } from 'lucide-react';
 
 type PeriodOption = 7 | 14 | 30;
@@ -67,6 +68,7 @@ function describeArcPath(
 export default function DashboardPage() {
   const [showValues, setShowValues] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption>(7);
+  const [showAllAccounts, setShowAllAccounts] = useState(false);
   const { transactions } = useTransactions();
   const { accounts, isLoading: accountsLoading } = useAccounts();
   const { workspaceId, workspace, workspaces, setWorkspaceId } = useAuth();
@@ -239,43 +241,64 @@ export default function DashboardPage() {
           </Link>
           <LayoutGrid size={18} className="text-zinc-400" />
         </div>
-        <ul>
-          {accounts.map((account, i) => {
-            const AccountIcon = getIconComponent(account.icon);
+        {(() => {
+          const sorted = [...accounts].sort((a, b) => Number(b.currentBalance) - Number(a.currentBalance));
+          const visible = showAllAccounts ? sorted : sorted.slice(0, 4);
+          const hidden = sorted.length - 4;
 
-            return (
-            <li
-              key={account.id}
-              className={`flex items-center justify-between py-3 ${
-                i < accounts.length - 1 ? 'border-b border-zinc-700/40' : ''
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className="flex h-10 w-10 items-center justify-center rounded-full border"
-                  style={{
-                    backgroundColor: alphaHex(account.color, '22'),
-                    borderColor: alphaHex(account.color, '66'),
-                  }}
+          return (
+            <>
+              <ul>
+                {visible.map((account, i) => {
+                  const AccountIcon = getIconComponent(account.icon);
+                  const isLast = i === visible.length - 1 && (showAllAccounts || hidden <= 0);
+
+                  return (
+                    <li
+                      key={account.id}
+                      className={`flex items-center justify-between py-3 ${
+                        !isLast ? 'border-b border-zinc-700/40' : ''
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="flex h-10 w-10 items-center justify-center rounded-full border"
+                          style={{
+                            backgroundColor: alphaHex(account.color, '22'),
+                            borderColor: alphaHex(account.color, '66'),
+                          }}
+                        >
+                          <AccountIcon size={16} style={{ color: account.color }} />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{account.name}</p>
+                          <p className="text-sm text-green-400">{money(Number(account.currentBalance))}</p>
+                        </div>
+                      </div>
+                      <button className="font-light text-lime-300" aria-label="Adicionar">
+                        <Plus size={20} />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              {sorted.length > 4 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllAccounts((v) => !v)}
+                  className="flex w-full items-center justify-center gap-1 border-t border-zinc-700/40 pt-3 mt-1 text-xs text-zinc-400 transition-colors hover:text-zinc-200"
                 >
-                  <AccountIcon size={16} style={{ color: account.color }} />
-                </div>
-                <div>
-                  <p className="font-medium text-sm">{account.name}</p>
-                  <p className="text-sm text-green-400">{money(Number(account.currentBalance))}</p>
-                </div>
-              </div>
-              <button className="font-light text-lime-300" aria-label="Adicionar">
-                <Plus size={20} />
-              </button>
-            </li>
-            );
-          })}
-        </ul>
-        <div className="border-t border-zinc-700/40 mt-1 pt-3 flex justify-between text-sm font-semibold">
-          <span>Total</span>
-          <span>{money(totalBalance)}</span>
-        </div>
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform ${showAllAccounts ? 'rotate-180' : ''}`}
+                  />
+                  {showAllAccounts ? 'Ver menos' : `Ver mais ${hidden} conta${hidden > 1 ? 's' : ''}`}
+                </button>
+              )}
+            </>
+          );
+        })()}
       </div>
 
       {/* evolution section */}
