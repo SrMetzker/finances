@@ -8,7 +8,6 @@ import {
   PieChart,
   MoreHorizontal,
   ArrowLeft,
-  ChevronDown,
   ArrowUpRight,
   ArrowDownRight,
   Repeat,
@@ -196,7 +195,6 @@ export function PageShell({
         {typeof title === 'string' ? (
           <button className="flex items-center gap-1 text-base font-semibold tracking-[0.02em]">
             {title}
-            {!backHref && <ChevronDown size={16} className="text-lime-200/80" />}
           </button>
         ) : (
           <div className="flex flex-1 justify-center px-3">{title}</div>
