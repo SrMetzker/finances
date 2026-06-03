@@ -62,6 +62,7 @@ model Account {
   initialBalance      Decimal       @db.Decimal(12, 2)
   icon                String        @default("wallet")
   color               String        @default("#EF4444")
+  showOnDashboard     Boolean       @default(true)
   workspaceId         String
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt

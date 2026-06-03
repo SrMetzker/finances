@@ -1,4 +1,4 @@
-import { IsHexColor, IsNumber, IsString, MinLength } from 'class-validator';
+import { IsBoolean, IsHexColor, IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class CreateAccountDto {
   @IsString()
@@ -14,4 +14,8 @@ export class CreateAccountDto {
 
   @IsHexColor()
   color: string;
+
+  @IsBoolean()
+  @IsOptional()
+  showOnDashboard?: boolean;
 }

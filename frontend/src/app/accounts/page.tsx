@@ -48,12 +48,14 @@ export default function AccountsPage() {
   const [initialBalance, setInitialBalance] = useState('0');
   const [icon, setIcon] = useState<VisualIconName>(DEFAULT_ACCOUNT_ICON);
   const [color, setColor] = useState(DEFAULT_ACCOUNT_COLOR);
+  const [showOnDashboard, setShowOnDashboard] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editBalance, setEditBalance] = useState('');
   const [editIcon, setEditIcon] = useState<VisualIconName>(DEFAULT_ACCOUNT_ICON);
   const [editColor, setEditColor] = useState(DEFAULT_ACCOUNT_COLOR);
+  const [editShowOnDashboard, setEditShowOnDashboard] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const createNameInputRef = useRef<HTMLInputElement>(null);
@@ -133,6 +135,7 @@ export default function AccountsPage() {
     setInitialBalance('0');
     setIcon(DEFAULT_ACCOUNT_ICON);
     setColor(DEFAULT_ACCOUNT_COLOR);
+    setShowOnDashboard(true);
     setIsCreateOpen(true);
   }
 
@@ -156,6 +159,7 @@ export default function AccountsPage() {
         initialBalance: parsedBalance,
         icon,
         color,
+        showOnDashboard,
       });
       notify.success('Conta criada com sucesso.');
       setIsCreateOpen(false);
@@ -172,12 +176,14 @@ export default function AccountsPage() {
     accountBalance: number,
     accountIcon: string,
     accountColor: string,
+    accountShowOnDashboard: boolean,
   ) {
     setEditingAccountId(accountId);
     setEditName(accountName);
     setEditBalance(String(accountBalance));
     setEditIcon((accountIcon as VisualIconName) || DEFAULT_ACCOUNT_ICON);
     setEditColor(accountColor || DEFAULT_ACCOUNT_COLOR);
+    setEditShowOnDashboard(accountShowOnDashboard);
     setIsEditOpen(true);
     setOpenDropdownId(null);
   }
@@ -208,6 +214,7 @@ export default function AccountsPage() {
         name: trimmedName,
         icon: editIcon,
         color: editColor,
+        showOnDashboard: editShowOnDashboard,
       });
 
       const difference = newBalance - oldBalance;
@@ -320,6 +327,7 @@ export default function AccountsPage() {
                                 Number(account.currentBalance),
                                 account.icon,
                                 account.color,
+                                account.showOnDashboard,
                               )
                             }
                             className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm text-lime-300 hover:bg-white/6"
@@ -397,6 +405,28 @@ export default function AccountsPage() {
                 onChangeColor={setEditColor}
               />
 
+              <div className="brand-panel flex items-center justify-between rounded-2xl border border-white/8 px-3 py-2">
+                <div>
+                  <p className="text-sm text-zinc-200">Mostrar na tela inicial</p>
+                  <p className="text-xs text-zinc-500">Controla visibilidade no dashboard e saldo total inicial</p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={editShowOnDashboard}
+                  onClick={() => setEditShowOnDashboard((current) => !current)}
+                  className={`relative h-6 w-11 overflow-hidden rounded-full transition-colors ${
+                    editShowOnDashboard ? 'brand-gradient' : 'bg-zinc-700'
+                  }`}
+                >
+                  <span
+                    className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
+                      editShowOnDashboard ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+
               <p className="text-xs text-zinc-400">
                 Ao alterar o saldo, uma transação de ajuste será criada automaticamente.
               </p>
@@ -461,6 +491,28 @@ export default function AccountsPage() {
                 onChangeIcon={setIcon}
                 onChangeColor={setColor}
               />
+
+              <div className="brand-panel flex items-center justify-between rounded-2xl border border-white/8 px-3 py-2">
+                <div>
+                  <p className="text-sm text-zinc-200">Mostrar na tela inicial</p>
+                  <p className="text-xs text-zinc-500">Controla visibilidade no dashboard e saldo total inicial</p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={showOnDashboard}
+                  onClick={() => setShowOnDashboard((current) => !current)}
+                  className={`relative h-6 w-11 overflow-hidden rounded-full transition-colors ${
+                    showOnDashboard ? 'brand-gradient' : 'bg-zinc-700'
+                  }`}
+                >
+                  <span
+                    className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
+                      showOnDashboard ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
 
               <button
                 type="submit"

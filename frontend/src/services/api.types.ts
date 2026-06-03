@@ -8,6 +8,7 @@ export type Account = {
   currentBalance: number;
   icon: string;
   color: string;
+  showOnDashboard: boolean;
   workspaceId: string;
   createdAt: string;
   updatedAt: string;
@@ -120,6 +121,7 @@ export type CreateAccountDto = {
   initialBalance: number;
   icon: string;
   color: string;
+  showOnDashboard?: boolean;
 };
 
 export type CreateCardDto = {
