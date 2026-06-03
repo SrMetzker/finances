@@ -162,8 +162,16 @@ export default function TransactionsPage() {
           if (!pinnedSubsOfRoot.includes(tx.categoryId)) return false;
         }
       }
-      if (applied.accountIds.length > 0 && !applied.accountIds.includes(tx.accountId)) {
-        return false;
+      if (applied.accountIds.length > 0) {
+        const matchesSourceAccount = applied.accountIds.includes(tx.accountId);
+        const matchesDestinationAccount =
+          tx.type === 'TRANSFERENCIA' &&
+          !!tx.destinationAccountId &&
+          applied.accountIds.includes(tx.destinationAccountId);
+
+        if (!matchesSourceAccount && !matchesDestinationAccount) {
+          return false;
+        }
       }
       if (applied.useDateRange) {
         const txDate = tx.date.slice(0, 10);
