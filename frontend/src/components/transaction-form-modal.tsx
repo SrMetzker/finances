@@ -14,6 +14,7 @@ import { useAccounts } from '@/hooks/use-accounts-api';
 import { useCategories } from '@/hooks/use-categories-api';
 import { useTransactions } from '@/hooks/use-transactions-api';
 import { formatCurrency } from '@/lib/currency';
+import { isoDateFromNow, toStableTransactionDate } from '@/lib/date';
 import { alphaHex, getIconComponent } from '@/lib/visual-options';
 import { useAuth } from '@/services/auth.context';
 import { notify } from '@/services/toast';
@@ -52,20 +53,11 @@ type DescriptionSuggestion = {
 };
 
 function todayIsoDate() {
-  return new Date().toISOString().slice(0, 10);
+  return isoDateFromNow();
 }
 
 function isoDateFromOffset(daysOffset: number) {
-  const base = new Date();
-  base.setDate(base.getDate() + daysOffset);
-  return base.toISOString().slice(0, 10);
-}
-
-function isFutureDate(isoDate: string) {
-  const selected = new Date(`${isoDate}T00:00:00`);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return selected.getTime() > today.getTime();
+  return isoDateFromNow(daysOffset);
 }
 
 function detectDateOption(isoDate: string): DateOption {
@@ -74,27 +66,8 @@ function detectDateOption(isoDate: string): DateOption {
   return 'other';
 }
 
-function combineDateWithTime(dateOnly: string, sourceDate?: string) {
-  const [year, month, day] = dateOnly.split('-').map(Number);
-  const source = sourceDate ? new Date(sourceDate) : new Date();
-
-  const isValidSource = !Number.isNaN(source.getTime());
-  const hours = isValidSource ? source.getHours() : 0;
-  const minutes = isValidSource ? source.getMinutes() : 0;
-  const seconds = isValidSource ? source.getSeconds() : 0;
-  const milliseconds = isValidSource ? source.getMilliseconds() : 0;
-
-  const combined = new Date(
-    year,
-    (month ?? 1) - 1,
-    day ?? 1,
-    hours,
-    minutes,
-    seconds,
-    milliseconds,
-  );
-
-  return combined.toISOString();
+function isFutureDate(isoDate: string) {
+  return isoDate > todayIsoDate();
 }
 
 function normalizeText(value: string) {
@@ -378,7 +351,7 @@ export function TransactionFormModal({
           ? isoDateFromOffset(-1)
           : customDate;
 
-    return combineDateWithTime(dateOnly, initialValues?.date);
+    return toStableTransactionDate(dateOnly);
   }
 
   async function handleSubmit(event: React.FormEvent) {

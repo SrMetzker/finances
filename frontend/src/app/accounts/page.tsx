@@ -17,6 +17,7 @@ import {
 import { ChevronLeft, ChevronRight, MoreVertical, Plus, X, Edit } from 'lucide-react';
 import { useAuth } from '@/services/auth.context';
 import { notify } from '@/services/toast';
+import { isoDateFromNow, toStableTransactionDate } from '@/lib/date';
 import { useEffect, useRef, useState } from 'react';
 
 const MONTH_NAMES = [
@@ -229,7 +230,7 @@ export default function AccountsPage() {
           await createTransaction({
             amount: Math.abs(difference),
             type: difference > 0 ? 'ENTRADA' : 'SAIDA',
-            date: new Date().toISOString().slice(0, 10),
+            date: toStableTransactionDate(isoDateFromNow()),
             description: `Ajuste de saldo: ${trimmedName}`,
             accountId: editingAccountId,
             categoryId: transactionCategory.id,
