@@ -9,8 +9,8 @@ import {
   BriefcaseBusiness,
   TrendingUp,
   TrendingDown,
-  CircleDollarSign,
-  Receipt,
+  PenLine,
+  Calendar,
   FileText,
   ShoppingCart,
   ShoppingBag,
@@ -18,13 +18,13 @@ import {
   Bus,
   Train,
   House,
+  Church,
   Building2,
   Utensils,
   Coffee,
   HeartPulse,
   GraduationCap,
   Gamepad2,
-  Plane,
   Fuel,
   Smartphone,
   Wifi,
@@ -36,13 +36,9 @@ import {
   Calculator,
   BarChart3,
   PieChart,
-  CirclePercent,
-  ReceiptText,
-  BadgePercent,
   Handshake,
   Luggage,
   MapPin,
-  Compass,
   Navigation,
   Globe,
   Camera,
@@ -50,12 +46,7 @@ import {
   Ticket,
   Bike,
   Ship,
-  TramFront,
-  TrainFront,
   PlaneTakeoff,
-  PlaneLanding,
-  CarFront,
-  BusFront,
   Music,
   Film,
   Popcorn,
@@ -69,7 +60,6 @@ import {
   BedDouble,
   Bath,
   Wrench,
-  Hammer,
   Lightbulb,
   KeyRound,
 } from 'lucide-react';
@@ -84,8 +74,8 @@ export type VisualIconName =
   | 'briefcase-business'
   | 'trending-up'
   | 'trending-down'
-  | 'circle-dollar-sign'
-  | 'receipt'
+  | 'pen-line'
+  | 'calendar'
   | 'file-text'
   | 'shopping-cart'
   | 'shopping-bag'
@@ -93,13 +83,13 @@ export type VisualIconName =
   | 'bus'
   | 'train'
   | 'house'
+  | 'church'
   | 'building-2'
   | 'utensils'
   | 'coffee'
   | 'heart-pulse'
   | 'graduation-cap'
   | 'gamepad-2'
-  | 'plane'
   | 'fuel'
   | 'smartphone'
   | 'wifi'
@@ -111,13 +101,9 @@ export type VisualIconName =
   | 'calculator'
   | 'bar-chart-3'
   | 'pie-chart'
-  | 'circle-percent'
-  | 'receipt-text'
-  | 'badge-percent'
   | 'handshake'
   | 'luggage'
   | 'map-pin'
-  | 'compass'
   | 'navigation'
   | 'globe'
   | 'camera'
@@ -125,12 +111,7 @@ export type VisualIconName =
   | 'ticket'
   | 'bike'
   | 'ship'
-  | 'tram-front'
-  | 'train-front'
   | 'plane-takeoff'
-  | 'plane-landing'
-  | 'car-front'
-  | 'bus-front'
   | 'music'
   | 'film'
   | 'popcorn'
@@ -144,7 +125,6 @@ export type VisualIconName =
   | 'bed-double'
   | 'bath'
   | 'wrench'
-  | 'hammer'
   | 'lightbulb'
   | 'key-round';
 
@@ -158,8 +138,8 @@ export const ICON_COMPONENTS: Record<VisualIconName, LucideIcon> = {
   'briefcase-business': BriefcaseBusiness,
   'trending-up': TrendingUp,
   'trending-down': TrendingDown,
-  'circle-dollar-sign': CircleDollarSign,
-  receipt: Receipt,
+  calendar: Calendar,
+  'pen-line': PenLine,
   'file-text': FileText,
   'shopping-cart': ShoppingCart,
   'shopping-bag': ShoppingBag,
@@ -167,13 +147,13 @@ export const ICON_COMPONENTS: Record<VisualIconName, LucideIcon> = {
   bus: Bus,
   train: Train,
   house: House,
+  church: Church,
   'building-2': Building2,
   utensils: Utensils,
   coffee: Coffee,
   'heart-pulse': HeartPulse,
   'graduation-cap': GraduationCap,
   'gamepad-2': Gamepad2,
-  plane: Plane,
   fuel: Fuel,
   smartphone: Smartphone,
   wifi: Wifi,
@@ -185,13 +165,9 @@ export const ICON_COMPONENTS: Record<VisualIconName, LucideIcon> = {
   calculator: Calculator,
   'bar-chart-3': BarChart3,
   'pie-chart': PieChart,
-  'circle-percent': CirclePercent,
-  'receipt-text': ReceiptText,
-  'badge-percent': BadgePercent,
   handshake: Handshake,
   luggage: Luggage,
   'map-pin': MapPin,
-  compass: Compass,
   navigation: Navigation,
   globe: Globe,
   camera: Camera,
@@ -199,12 +175,7 @@ export const ICON_COMPONENTS: Record<VisualIconName, LucideIcon> = {
   ticket: Ticket,
   bike: Bike,
   ship: Ship,
-  'tram-front': TramFront,
-  'train-front': TrainFront,
   'plane-takeoff': PlaneTakeoff,
-  'plane-landing': PlaneLanding,
-  'car-front': CarFront,
-  'bus-front': BusFront,
   music: Music,
   film: Film,
   popcorn: Popcorn,
@@ -218,7 +189,6 @@ export const ICON_COMPONENTS: Record<VisualIconName, LucideIcon> = {
   'bed-double': BedDouble,
   bath: Bath,
   wrench: Wrench,
-  hammer: Hammer,
   lightbulb: Lightbulb,
   'key-round': KeyRound,
 };
@@ -233,8 +203,8 @@ export const ICON_OPTIONS: Array<{ id: VisualIconName; label: string }> = [
   { id: 'briefcase-business', label: 'Trabalho' },
   { id: 'trending-up', label: 'Investimento alta' },
   { id: 'trending-down', label: 'Investimento baixa' },
-  { id: 'circle-dollar-sign', label: 'Financeiro' },
-  { id: 'receipt', label: 'Recibo' },
+  { id: 'pen-line', label: 'Assinatura' },
+  { id: 'calendar', label: 'Calendário' },
   { id: 'file-text', label: 'Documento' },
   { id: 'shopping-cart', label: 'Mercado' },
   { id: 'shopping-bag', label: 'Compras' },
@@ -242,13 +212,13 @@ export const ICON_OPTIONS: Array<{ id: VisualIconName; label: string }> = [
   { id: 'bus', label: 'Onibus' },
   { id: 'train', label: 'Trem' },
   { id: 'house', label: 'Casa' },
+  { id: 'church', label: 'Igreja' },
   { id: 'building-2', label: 'Imovel' },
   { id: 'utensils', label: 'Alimentacao' },
   { id: 'coffee', label: 'Cafe' },
   { id: 'heart-pulse', label: 'Saude' },
   { id: 'graduation-cap', label: 'Educacao' },
   { id: 'gamepad-2', label: 'Lazer' },
-  { id: 'plane', label: 'Viagem' },
   { id: 'fuel', label: 'Combustivel' },
   { id: 'smartphone', label: 'Telefone' },
   { id: 'wifi', label: 'Internet' },
@@ -260,13 +230,9 @@ export const ICON_OPTIONS: Array<{ id: VisualIconName; label: string }> = [
   { id: 'calculator', label: 'Calculadora' },
   { id: 'bar-chart-3', label: 'Grafico de barras' },
   { id: 'pie-chart', label: 'Grafico pizza' },
-  { id: 'circle-percent', label: 'Percentual' },
-  { id: 'receipt-text', label: 'Comprovante' },
-  { id: 'badge-percent', label: 'Desconto' },
   { id: 'handshake', label: 'Acordo' },
   { id: 'luggage', label: 'Bagagem' },
   { id: 'map-pin', label: 'Localizacao' },
-  { id: 'compass', label: 'Bussola' },
   { id: 'navigation', label: 'Navegacao' },
   { id: 'globe', label: 'Mundo' },
   { id: 'camera', label: 'Camera' },
@@ -274,12 +240,7 @@ export const ICON_OPTIONS: Array<{ id: VisualIconName; label: string }> = [
   { id: 'ticket', label: 'Passagem' },
   { id: 'bike', label: 'Bicicleta' },
   { id: 'ship', label: 'Navio' },
-  { id: 'tram-front', label: 'VLT' },
-  { id: 'train-front', label: 'Trem frontal' },
   { id: 'plane-takeoff', label: 'Decolagem' },
-  { id: 'plane-landing', label: 'Pouso' },
-  { id: 'car-front', label: 'Carro frontal' },
-  { id: 'bus-front', label: 'Onibus frontal' },
   { id: 'music', label: 'Musica' },
   { id: 'film', label: 'Filme' },
   { id: 'popcorn', label: 'Pipoca' },
@@ -293,7 +254,6 @@ export const ICON_OPTIONS: Array<{ id: VisualIconName; label: string }> = [
   { id: 'bed-double', label: 'Quarto' },
   { id: 'bath', label: 'Banheiro' },
   { id: 'wrench', label: 'Manutencao' },
-  { id: 'hammer', label: 'Reforma' },
   { id: 'lightbulb', label: 'Energia' },
   { id: 'key-round', label: 'Chaves' },
 ];

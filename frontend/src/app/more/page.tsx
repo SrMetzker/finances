@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ChevronRight, Landmark, Settings } from 'lucide-react';
+import { ChevronRight, Landmark, Settings, Tag } from 'lucide-react';
 import { PageShell } from '@/components/page-shell';
 
 const MENU_ITEMS = [
@@ -10,6 +10,12 @@ const MENU_ITEMS = [
     title: 'Contas',
     description: 'Gerencie suas contas e saldos',
     icon: Landmark,
+  },
+  {
+    href: '/categories',
+    title: 'Categorias',
+    description: 'Gerencie suas categorias',
+    icon: Tag,
   },
   {
     href: '/settings',
