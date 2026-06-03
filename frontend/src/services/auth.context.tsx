@@ -111,9 +111,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const timeoutId = window.setTimeout(() => {
-      Promise.all([apiClient.getCurrentUser(), syncWorkspaces(savedWorkspaceId)])
-        .then(([userData]) => {
+      apiClient.getCurrentUser()
+        .then(async (userData) => {
           setUser(userData);
+          await syncWorkspaces(savedWorkspaceId ?? userData.lastWorkspaceId ?? null);
         })
         .catch(() => {
           // Sessao invalida/expirada: limpamos o estado local.
@@ -201,6 +202,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const setWorkspaceId = useCallback((id: string) => {
     applyWorkspaceSelection(workspaces, id);
+    void apiClient.updateCurrentUserLastWorkspace(id).catch(() => {
+      // Mesmo com falha de persistência remota, mantemos a troca local aplicada.
+    });
   }, [applyWorkspaceSelection, workspaces]);
 
   const refreshWorkspaces = useCallback(

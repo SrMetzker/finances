@@ -12,8 +12,8 @@ import { useAuth } from '@/services/auth.context';
 import {
   Eye,
   EyeOff,
-  ArrowUp,
-  ArrowDown,
+  BanknoteArrowUp,
+  BanknoteArrowDown,
   Minus,
   LayoutGrid,
   Plus,
@@ -77,7 +77,12 @@ export default function DashboardPage() {
   const { accounts, isLoading: accountsLoading } = useAccounts();
   const { workspaceId, workspace, workspaces, setWorkspaceId } = useAuth();
 
-  const totalBalance = accounts.reduce((s, a) => s + Number(a.currentBalance), 0);
+  const dashboardAccounts = useMemo(
+    () => accounts.filter((account) => account.showOnDashboard !== false),
+    [accounts],
+  );
+
+  const totalBalance = dashboardAccounts.reduce((s, a) => s + Number(a.currentBalance), 0);
 
   const monthlyBalance = useMemo(() => {
     const now = new Date();
@@ -111,13 +116,13 @@ export default function DashboardPage() {
       ? {
           wrapperClass: 'text-green-400',
           iconBgClass: 'bg-green-600',
-          ValueIcon: ArrowUp,
+          ValueIcon: BanknoteArrowUp,
         }
       : monthlyBalance < 0
         ? {
             wrapperClass: 'text-red-400',
             iconBgClass: 'bg-red-600',
-            ValueIcon: ArrowDown,
+            ValueIcon: BanknoteArrowDown,
           }
         : {
             wrapperClass: 'text-zinc-400',
@@ -340,7 +345,7 @@ export default function DashboardPage() {
           <LayoutGrid size={18} className="text-zinc-400" />
         </div>
         {(() => {
-          const sorted = [...accounts].sort((a, b) => Number(b.currentBalance) - Number(a.currentBalance));
+          const sorted = [...dashboardAccounts].sort((a, b) => Number(b.currentBalance) - Number(a.currentBalance));
           const visible = showAllAccounts ? sorted : sorted.slice(0, 4);
           const hidden = sorted.length - 4;
 

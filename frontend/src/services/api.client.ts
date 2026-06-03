@@ -16,6 +16,7 @@ import type {
   DeleteAccountDto,
   CreateWorkspaceDto,
   UpdateWorkspaceDto,
+  ReportAnalytics,
 } from './api.types';
 
 const DEFAULT_API_URL = 'http://localhost:3001/api';
@@ -133,6 +134,14 @@ class ApiClient {
     return this.request<User>('PATCH', '/users/me/profile', data);
   }
 
+  updateCurrentUserLastWorkspace(workspaceId: string) {
+    return this.request<{ updated: boolean; lastWorkspaceId: string }>(
+      'PATCH',
+      '/users/me/last-workspace',
+      { workspaceId },
+    );
+  }
+
   changeCurrentUserPassword(data: ChangePasswordDto) {
     return this.request<{ updated: boolean }>('PATCH', '/users/me/password', data);
   }
@@ -245,6 +254,25 @@ class ApiClient {
 
   deleteTransaction(id: string) {
     return this.request<{ deleted: boolean }>('DELETE', `/transactions/${id}`);
+  }
+
+  getReportAnalytics(
+    month: number,
+    year: number,
+    accountIds?: string[],
+    categoryIds?: string[],
+  ) {
+    const params = new URLSearchParams();
+    params.append('month', month.toString());
+    params.append('year', year.toString());
+    if (accountIds && accountIds.length > 0) {
+      params.append('accountIds', accountIds.join(','));
+    }
+    if (categoryIds && categoryIds.length > 0) {
+      params.append('categoryIds', categoryIds.join(','));
+    }
+
+    return this.request<ReportAnalytics>('GET', `/reports/analytics?${params.toString()}`);
   }
 }
 

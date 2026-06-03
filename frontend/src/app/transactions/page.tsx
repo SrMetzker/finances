@@ -162,8 +162,16 @@ export default function TransactionsPage() {
           if (!pinnedSubsOfRoot.includes(tx.categoryId)) return false;
         }
       }
-      if (applied.accountIds.length > 0 && !applied.accountIds.includes(tx.accountId)) {
-        return false;
+      if (applied.accountIds.length > 0) {
+        const matchesSourceAccount = applied.accountIds.includes(tx.accountId);
+        const matchesDestinationAccount =
+          tx.type === 'TRANSFERENCIA' &&
+          !!tx.destinationAccountId &&
+          applied.accountIds.includes(tx.destinationAccountId);
+
+        if (!matchesSourceAccount && !matchesDestinationAccount) {
+          return false;
+        }
       }
       if (applied.useDateRange) {
         const txDate = tx.date.slice(0, 10);
@@ -213,8 +221,20 @@ export default function TransactionsPage() {
     const monthParam = searchParams.get('month');
     const rootParam = searchParams.get('categoryRootIds');
     const subParam = searchParams.get('categorySubIds');
+    const accountParam = searchParams.get('accountIds');
+    const dateFromParam = searchParams.get('dateFrom');
+    const dateToParam = searchParams.get('dateTo');
+    const useDateRangeParam = searchParams.get('useDateRange');
 
-    const currentQueryKey = `${monthParam ?? ''}|${rootParam ?? ''}|${subParam ?? ''}`;
+    const currentQueryKey = [
+      monthParam ?? '',
+      rootParam ?? '',
+      subParam ?? '',
+      accountParam ?? '',
+      dateFromParam ?? '',
+      dateToParam ?? '',
+      useDateRangeParam ?? '',
+    ].join('|');
     if (lastHydratedQueryRef.current === currentQueryKey) {
       return;
     }
@@ -230,12 +250,28 @@ export default function TransactionsPage() {
     const subIds = subParam
       ? subParam.split(',').map((id) => id.trim()).filter(Boolean)
       : [];
+    const accountIds = accountParam
+      ? accountParam.split(',').map((id) => id.trim()).filter(Boolean)
+      : [];
+    const useDateRange = useDateRangeParam === '1' || useDateRangeParam === 'true';
 
-    if (monthParam || rootIds.length > 0 || subIds.length > 0) {
+    if (
+      monthParam ||
+      rootIds.length > 0 ||
+      subIds.length > 0 ||
+      accountIds.length > 0 ||
+      dateFromParam ||
+      dateToParam ||
+      useDateRange
+    ) {
       const hydrated: ActiveFilters = {
         ...EMPTY_FILTERS,
         categoryRootIds: rootIds,
         categorySubIds: subIds,
+        accountIds,
+        dateFrom: dateFromParam ?? '',
+        dateTo: dateToParam ?? '',
+        useDateRange,
       };
       setDraft(hydrated);
       setApplied(hydrated);

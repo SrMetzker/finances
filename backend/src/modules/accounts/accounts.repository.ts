@@ -8,7 +8,13 @@ export class AccountsRepository {
 
   create(
     workspaceId: string,
-    data: { name: string; initialBalance: number; icon: string; color: string },
+    data: {
+      name: string;
+      initialBalance: number;
+      icon: string;
+      color: string;
+      showOnDashboard?: boolean;
+    },
   ) {
     return this.prisma.account.create({
       data: {
@@ -16,6 +22,7 @@ export class AccountsRepository {
         initialBalance: data.initialBalance,
         icon: data.icon,
         color: data.color,
+        showOnDashboard: data.showOnDashboard ?? true,
         workspaceId,
       },
     });
@@ -103,9 +110,13 @@ export class AccountsRepository {
           name: account.name,
           icon: account.icon,
           color: account.color,
+          showOnDashboard:
+            (account as { showOnDashboard?: boolean }).showOnDashboard ?? true,
           workspaceId: account.workspaceId,
           initialBalance: Number(account.initialBalance),
           currentBalance,
+          createdAt: account.createdAt,
+          updatedAt: account.updatedAt,
         };
       }),
     );

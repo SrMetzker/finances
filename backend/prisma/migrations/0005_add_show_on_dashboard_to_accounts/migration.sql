@@ -1,0 +1,2 @@
+ALTER TABLE "Account"
+ADD COLUMN "showOnDashboard" BOOLEAN NOT NULL DEFAULT true;

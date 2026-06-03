@@ -3,15 +3,14 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  Home,
-  AlignJustify,
-  PieChart,
+  Blocks,
+  ListCheck,
+  BarChart3,
   MoreHorizontal,
   ArrowLeft,
-  ChevronDown,
-  ArrowUpRight,
-  ArrowDownRight,
-  Repeat,
+  BanknoteArrowUp,
+  BanknoteArrowDown,
+  Shuffle,
   Plus,
   LogOut,
   Settings,
@@ -24,10 +23,10 @@ import { useAuth } from '@/services/auth.context';
 import type { CreateTransactionDto, TransactionType } from '@/services/api.types';
 
 const BOTTOM_NAV = [
-  { href: '/dashboard', label: 'Principal', icon: Home },
-  { href: '/transactions', label: 'Transações', icon: AlignJustify },
+  { href: '/dashboard', label: 'Dashboard', icon: Blocks },
+  { href: '/transactions', label: 'Transações', icon: ListCheck },
   null,
-  { href: '/categories', label: 'Categorias', icon: PieChart },
+  { href: '/charts', label: 'Gráficos', icon: BarChart3 },
   { href: '/more', label: 'Mais', icon: MoreHorizontal },
 ] as const;
 
@@ -35,19 +34,19 @@ const QUICK_ACTIONS: QuickActionItem[] = [
   {
     id: 'transferencia',
     label: 'Transferencia',
-    icon: Repeat,
+    icon: Shuffle,
     iconClassName: 'text-lime-300',
   },
   {
     id: 'receita',
     label: 'Receita',
-    icon: ArrowUpRight,
+    icon: BanknoteArrowUp,
     iconClassName: 'text-green-400',
   },
   {
     id: 'despesa',
     label: 'Despesa',
-    icon: ArrowDownRight,
+    icon: BanknoteArrowDown,
     iconClassName: 'text-red-400',
   },
 ];
@@ -196,7 +195,6 @@ export function PageShell({
         {typeof title === 'string' ? (
           <button className="flex items-center gap-1 text-base font-semibold tracking-[0.02em]">
             {title}
-            {!backHref && <ChevronDown size={16} className="text-lime-200/80" />}
           </button>
         ) : (
           <div className="flex flex-1 justify-center px-3">{title}</div>

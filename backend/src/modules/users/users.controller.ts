@@ -12,6 +12,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { UsersService } from './users.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { DeleteAccountDto } from './dto/delete-account.dto';
+import { UpdateLastWorkspaceDto } from './dto/update-last-workspace.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Controller('users')
@@ -30,6 +31,14 @@ export class UsersController {
     @Body() body: UpdateProfileDto,
   ) {
     return this.usersService.updateProfile(user.sub, body);
+  }
+
+  @Patch('me/last-workspace')
+  updateLastWorkspace(
+    @CurrentUser() user: { sub: string },
+    @Body() body: UpdateLastWorkspaceDto,
+  ) {
+    return this.usersService.updateLastWorkspace(user.sub, body.workspaceId);
   }
 
   @Patch('me/password')

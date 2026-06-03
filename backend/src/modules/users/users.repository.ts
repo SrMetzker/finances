@@ -8,6 +8,7 @@ export type UserEntity = {
   email: string;
   password: string;
   avatarUrl?: string | null;
+  lastWorkspaceId?: string | null;
 };
 
 @Injectable()
@@ -42,6 +43,27 @@ export class UsersRepository {
 
   updatePassword(id: string, password: string) {
     return this.prisma.user.update({ where: { id }, data: { password } });
+  }
+
+  async hasWorkspaceAccess(userId: string, workspaceId: string) {
+    const membership = await this.prisma.workspaceMember.findUnique({
+      where: {
+        userId_workspaceId: {
+          userId,
+          workspaceId,
+        },
+      },
+      select: { id: true },
+    });
+
+    return !!membership;
+  }
+
+  updateLastWorkspace(id: string, workspaceId: string) {
+    return this.prisma.user.update({
+      where: { id },
+      data: { lastWorkspaceId: workspaceId },
+    }) as Promise<UserEntity>;
   }
 
   async clearWorkspaceFinancialDataByUser(userId: string) {
