@@ -56,9 +56,13 @@ export class AuthService {
   ) {
     const accessToken = await this.jwtService.signAsync({ sub: userId, email });
 
-    // Buscar primeiro workspace do usuário
+    // Prioriza o último workspace utilizado pelo usuário; fallback para o mais recente.
+    const user = await this.usersService.findById(userId);
     const workspaces = await this.workspacesService.listByUser(userId);
-    const defaultWorkspace = workspaces[0];
+    const preferredWorkspace = user?.lastWorkspaceId
+      ? workspaces.find((workspace) => workspace.id === user.lastWorkspaceId) ?? null
+      : null;
+    const defaultWorkspace = preferredWorkspace ?? workspaces[0] ?? null;
 
     return {
       accessToken,
@@ -67,6 +71,7 @@ export class AuthService {
         email,
         name,
         avatarUrl: avatarUrl ?? null,
+        lastWorkspaceId: user?.lastWorkspaceId ?? null,
       },
       workspace: defaultWorkspace || null,
     };

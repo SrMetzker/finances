@@ -20,6 +20,14 @@ import type { ReportAccountSlice, ReportCategorySlice } from '@/services/api.typ
 type ChartKind = 'pie' | 'line' | 'bar';
 type MetricKind = 'expenseCategory' | 'expenseAccount' | 'incomeCategory' | 'incomeAccount' | 'dailyFlow';
 
+type ChartMetricItem = {
+  id: string;
+  label: string;
+  value: number;
+  color?: string;
+  onClick?: () => void;
+};
+
 const MONTH_NAMES = [
   'Janeiro',
   'Fevereiro',
@@ -210,15 +218,9 @@ export default function ChartsPage() {
     { id: 'dailyFlow', label: 'Fluxo diário' },
   ];
 
-  const currentMetricItems = useMemo(() => {
+  const currentMetricItems = useMemo<ChartMetricItem[]>(() => {
     if (!data) {
-      return [] as Array<{
-        id: string;
-        label: string;
-        value: number;
-        color?: string;
-        onClick?: () => void;
-      }>;
+      return [];
     }
 
     const redirectToMonth = `${data.year}-${String(data.month).padStart(2, '0')}`;

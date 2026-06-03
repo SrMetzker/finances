@@ -134,6 +134,14 @@ class ApiClient {
     return this.request<User>('PATCH', '/users/me/profile', data);
   }
 
+  updateCurrentUserLastWorkspace(workspaceId: string) {
+    return this.request<{ updated: boolean; lastWorkspaceId: string }>(
+      'PATCH',
+      '/users/me/last-workspace',
+      { workspaceId },
+    );
+  }
+
   changeCurrentUserPassword(data: ChangePasswordDto) {
     return this.request<{ updated: boolean }>('PATCH', '/users/me/password', data);
   }

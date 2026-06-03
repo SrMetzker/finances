@@ -36,6 +36,7 @@ export class UsersService {
       name: found.name,
       email: found.email,
       avatarUrl: found.avatarUrl,
+      lastWorkspaceId: found.lastWorkspaceId ?? null,
     };
   }
 
@@ -65,6 +66,32 @@ export class UsersService {
       name: updated.name,
       email: updated.email,
       avatarUrl: updated.avatarUrl,
+      lastWorkspaceId: updated.lastWorkspaceId ?? null,
+    };
+  }
+
+  async updateLastWorkspace(userId: string, workspaceId: string) {
+    const current = await this.usersRepository.findById(userId);
+    if (!current) {
+      throw new NotFoundException('Usuário não encontrado.');
+    }
+
+    const hasAccess = await this.usersRepository.hasWorkspaceAccess(
+      userId,
+      workspaceId,
+    );
+    if (!hasAccess) {
+      throw new NotFoundException('Workspace não encontrado para este usuário.');
+    }
+
+    const updated = await this.usersRepository.updateLastWorkspace(
+      userId,
+      workspaceId,
+    );
+
+    return {
+      updated: true,
+      lastWorkspaceId: updated.lastWorkspaceId,
     };
   }
 

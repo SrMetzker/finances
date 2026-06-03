@@ -65,6 +65,7 @@ export type User = {
   name: string;
   email: string;
   avatarUrl?: string | null;
+  lastWorkspaceId?: string | null;
 };
 
 export type UpdateProfileDto = {

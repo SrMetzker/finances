@@ -110,7 +110,8 @@ export class AccountsRepository {
           name: account.name,
           icon: account.icon,
           color: account.color,
-          showOnDashboard: account.showOnDashboard,
+          showOnDashboard:
+            (account as { showOnDashboard?: boolean }).showOnDashboard ?? true,
           workspaceId: account.workspaceId,
           initialBalance: Number(account.initialBalance),
           currentBalance,
