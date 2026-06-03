@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ChevronRight, Landmark, Settings, Tag } from 'lucide-react';
+import { BarChart3, ChevronRight, Landmark, Settings, Tags } from 'lucide-react';
 import { PageShell } from '@/components/page-shell';
 
 const MENU_ITEMS = [
@@ -15,7 +15,13 @@ const MENU_ITEMS = [
     href: '/categories',
     title: 'Categorias',
     description: 'Gerencie suas categorias',
-    icon: Tag,
+    icon: Tags,
+  },
+  {
+    href: '/charts',
+    title: 'Gráficos',
+    description: 'Analise receitas e despesas por mês',
+    icon: BarChart3,
   },
   {
     href: '/settings',

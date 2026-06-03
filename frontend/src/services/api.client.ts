@@ -16,6 +16,7 @@ import type {
   DeleteAccountDto,
   CreateWorkspaceDto,
   UpdateWorkspaceDto,
+  ReportAnalytics,
 } from './api.types';
 
 const DEFAULT_API_URL = 'http://localhost:3001/api';
@@ -245,6 +246,25 @@ class ApiClient {
 
   deleteTransaction(id: string) {
     return this.request<{ deleted: boolean }>('DELETE', `/transactions/${id}`);
+  }
+
+  getReportAnalytics(
+    month: number,
+    year: number,
+    accountIds?: string[],
+    categoryIds?: string[],
+  ) {
+    const params = new URLSearchParams();
+    params.append('month', month.toString());
+    params.append('year', year.toString());
+    if (accountIds && accountIds.length > 0) {
+      params.append('accountIds', accountIds.join(','));
+    }
+    if (categoryIds && categoryIds.length > 0) {
+      params.append('categoryIds', categoryIds.join(','));
+    }
+
+    return this.request<ReportAnalytics>('GET', `/reports/analytics?${params.toString()}`);
   }
 }
 

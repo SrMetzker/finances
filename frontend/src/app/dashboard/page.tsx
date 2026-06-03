@@ -12,8 +12,8 @@ import { useAuth } from '@/services/auth.context';
 import {
   Eye,
   EyeOff,
-  ArrowUp,
-  ArrowDown,
+  BanknoteArrowUp,
+  BanknoteArrowDown,
   Minus,
   LayoutGrid,
   Plus,
@@ -116,13 +116,13 @@ export default function DashboardPage() {
       ? {
           wrapperClass: 'text-green-400',
           iconBgClass: 'bg-green-600',
-          ValueIcon: ArrowUp,
+          ValueIcon: BanknoteArrowUp,
         }
       : monthlyBalance < 0
         ? {
             wrapperClass: 'text-red-400',
             iconBgClass: 'bg-red-600',
-            ValueIcon: ArrowDown,
+            ValueIcon: BanknoteArrowDown,
           }
         : {
             wrapperClass: 'text-zinc-400',

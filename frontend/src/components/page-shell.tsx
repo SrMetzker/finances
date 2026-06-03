@@ -3,14 +3,14 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  Home,
-  AlignJustify,
-  PieChart,
+  Blocks,
+  ListCheck,
+  BarChart3,
   MoreHorizontal,
   ArrowLeft,
-  ArrowUpRight,
-  ArrowDownRight,
-  Repeat,
+  BanknoteArrowUp,
+  BanknoteArrowDown,
+  Shuffle,
   Plus,
   LogOut,
   Settings,
@@ -23,10 +23,10 @@ import { useAuth } from '@/services/auth.context';
 import type { CreateTransactionDto, TransactionType } from '@/services/api.types';
 
 const BOTTOM_NAV = [
-  { href: '/dashboard', label: 'Principal', icon: Home },
-  { href: '/transactions', label: 'Transações', icon: AlignJustify },
+  { href: '/dashboard', label: 'Dashboard', icon: Blocks },
+  { href: '/transactions', label: 'Transações', icon: ListCheck },
   null,
-  { href: '/categories', label: 'Categorias', icon: PieChart },
+  { href: '/charts', label: 'Gráficos', icon: BarChart3 },
   { href: '/more', label: 'Mais', icon: MoreHorizontal },
 ] as const;
 
@@ -34,19 +34,19 @@ const QUICK_ACTIONS: QuickActionItem[] = [
   {
     id: 'transferencia',
     label: 'Transferencia',
-    icon: Repeat,
+    icon: Shuffle,
     iconClassName: 'text-lime-300',
   },
   {
     id: 'receita',
     label: 'Receita',
-    icon: ArrowUpRight,
+    icon: BanknoteArrowUp,
     iconClassName: 'text-green-400',
   },
   {
     id: 'despesa',
     label: 'Despesa',
-    icon: ArrowDownRight,
+    icon: BanknoteArrowDown,
     iconClassName: 'text-red-400',
   },
 ];

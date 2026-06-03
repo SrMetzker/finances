@@ -145,3 +145,41 @@ export type CreateWorkspaceDto = {
 };
 
 export type UpdateWorkspaceDto = Partial<CreateWorkspaceDto>;
+
+export type ReportCategorySlice = {
+  categoryId: string;
+  categoryName: string;
+  categoryColor: string;
+  rootCategoryId: string;
+  subCategoryId?: string;
+  total: number;
+};
+
+export type ReportAccountSlice = {
+  accountId: string;
+  accountName: string;
+  accountColor: string;
+  accountIcon: string;
+  total: number;
+};
+
+export type ReportDailyFlowPoint = {
+  date: string;
+  income: number;
+  expense: number;
+};
+
+export type ReportAnalytics = {
+  month: number;
+  year: number;
+  totals: {
+    income: number;
+    expense: number;
+    balance: number;
+  };
+  expensesByCategory: ReportCategorySlice[];
+  incomesByCategory: ReportCategorySlice[];
+  expensesByAccount: ReportAccountSlice[];
+  incomesByAccount: ReportAccountSlice[];
+  dailyFlow: ReportDailyFlowPoint[];
+};

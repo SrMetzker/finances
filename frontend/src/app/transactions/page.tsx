@@ -213,8 +213,20 @@ export default function TransactionsPage() {
     const monthParam = searchParams.get('month');
     const rootParam = searchParams.get('categoryRootIds');
     const subParam = searchParams.get('categorySubIds');
+    const accountParam = searchParams.get('accountIds');
+    const dateFromParam = searchParams.get('dateFrom');
+    const dateToParam = searchParams.get('dateTo');
+    const useDateRangeParam = searchParams.get('useDateRange');
 
-    const currentQueryKey = `${monthParam ?? ''}|${rootParam ?? ''}|${subParam ?? ''}`;
+    const currentQueryKey = [
+      monthParam ?? '',
+      rootParam ?? '',
+      subParam ?? '',
+      accountParam ?? '',
+      dateFromParam ?? '',
+      dateToParam ?? '',
+      useDateRangeParam ?? '',
+    ].join('|');
     if (lastHydratedQueryRef.current === currentQueryKey) {
       return;
     }
@@ -230,12 +242,28 @@ export default function TransactionsPage() {
     const subIds = subParam
       ? subParam.split(',').map((id) => id.trim()).filter(Boolean)
       : [];
+    const accountIds = accountParam
+      ? accountParam.split(',').map((id) => id.trim()).filter(Boolean)
+      : [];
+    const useDateRange = useDateRangeParam === '1' || useDateRangeParam === 'true';
 
-    if (monthParam || rootIds.length > 0 || subIds.length > 0) {
+    if (
+      monthParam ||
+      rootIds.length > 0 ||
+      subIds.length > 0 ||
+      accountIds.length > 0 ||
+      dateFromParam ||
+      dateToParam ||
+      useDateRange
+    ) {
       const hydrated: ActiveFilters = {
         ...EMPTY_FILTERS,
         categoryRootIds: rootIds,
         categorySubIds: subIds,
+        accountIds,
+        dateFrom: dateFromParam ?? '',
+        dateTo: dateToParam ?? '',
+        useDateRange,
       };
       setDraft(hydrated);
       setApplied(hydrated);
