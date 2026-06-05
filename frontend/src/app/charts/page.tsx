@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PageShell } from '@/components/page-shell';
@@ -54,20 +54,29 @@ function resolveColor(index: number, custom?: string) {
 }
 
 function formatDayLabel(dateIso: string) {
-  const date = new Date(dateIso);
-  if (Number.isNaN(date.getTime())) {
+  const dateOnly = dateIso.match(/^(\d{4}-\d{2}-\d{2})/)?.[1] ?? dateIso;
+  const [year, month, day] = dateOnly.split('-').map(Number);
+  if (!year || !month || !day) {
     return dateIso;
   }
+
+  const date = new Date(year, month - 1, day);
 
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 }
 
 function PieChartSvg({
-  values,
+  items,
+  activeItemId,
+  onActiveItemChange,
+  formatValue,
 }: {
-  values: Array<{ value: number; color?: string }>;
+  items: Array<{ id: string; label: string; value: number; color?: string }>;
+  activeItemId: string | null;
+  onActiveItemChange: (id: string | null) => void;
+  formatValue: (value: number) => string;
 }) {
-  const total = values.reduce((sum, item) => sum + item.value, 0);
+  const total = items.reduce((sum, item) => sum + item.value, 0);
   const radius = 58;
 
   if (total <= 0) {
@@ -101,32 +110,112 @@ function PieChartSvg({
     return `M ${cx} ${cy} L ${start.x} ${start.y} A ${r} ${r} 0 ${largeArcFlag} 1 ${end.x} ${end.y} Z`;
   }
 
+  const activeSlice = (() => {
+    if (!activeItemId) {
+      return null;
+    }
+
+    const index = items.findIndex((item) => item.id === activeItemId);
+    if (index < 0) {
+      return null;
+    }
+
+    const item = items[index];
+    const previous = items.slice(0, index).reduce((sum, current) => sum + current.value, 0);
+    const startAngle = (previous / total) * 360 - 90;
+    const endAngle = ((previous + item.value) / total) * 360 - 90;
+    const midAngle = startAngle + (endAngle - startAngle) / 2;
+    const point = polarToCartesian(70, 70, radius + 10, midAngle);
+
+    return {
+      item,
+      x: point.x,
+      y: point.y,
+    };
+  })();
+
   return (
-    <svg viewBox="0 0 140 140" className="h-44 w-44">
-      {values.map((item, index) => {
-        const previous = values.slice(0, index).reduce((sum, current) => sum + current.value, 0);
+    <svg
+      viewBox="0 0 140 140"
+      className="h-44 w-44"
+      onClick={() => onActiveItemChange(null)}
+    >
+      {items.map((item, index) => {
+        const previous = items.slice(0, index).reduce((sum, current) => sum + current.value, 0);
         const startAngle = (previous / total) * 360 - 90;
         const endAngle = ((previous + item.value) / total) * 360 - 90;
+        const isActive = activeItemId === item.id;
+        const hasActive = !!activeItemId;
 
         return (
           <path
-            key={`pie-${index}`}
+            key={item.id}
             d={describeArcPath(70, 70, radius, startAngle, endAngle)}
             fill={resolveColor(index, item.color)}
-            stroke="rgba(12, 14, 22, 0.75)"
-            strokeWidth="1"
+            stroke={isActive ? 'rgba(255,255,255,0.35)' : 'rgba(12, 14, 22, 0.75)'}
+            strokeWidth={isActive ? '1.8' : '1'}
+            opacity={hasActive && !isActive ? 0.3 : 1}
+            className="cursor-pointer"
+            style={isActive ? { filter: 'saturate(1.1) brightness(0.82)' } : undefined}
+            onClick={(event) => {
+              event.stopPropagation();
+              onActiveItemChange(isActive ? null : item.id);
+            }}
           />
         );
       })}
       <circle cx="70" cy="70" r="30" fill="rgba(15, 17, 24, 0.95)" />
+
+      {activeSlice && (
+        <g pointerEvents="none">
+          {(() => {
+            const tooltipWidth = 92;
+            const tooltipHeight = 36;
+            const tooltipX = Math.min(
+              Math.max(activeSlice.x - tooltipWidth / 2, 4),
+              140 - tooltipWidth - 4,
+            );
+            const tooltipY = Math.min(
+              Math.max(activeSlice.y - 42, 4),
+              140 - tooltipHeight - 4,
+            );
+
+            return (
+              <>
+                <rect
+                  x={tooltipX}
+                  y={tooltipY}
+                  width={tooltipWidth}
+                  height={tooltipHeight}
+                  rx="9"
+                  fill="rgba(12, 14, 22, 0.95)"
+                  stroke="rgba(255,255,255,0.18)"
+                />
+                <text x={tooltipX + 7} y={tooltipY + 14} fill="#9ca3af" fontSize="8.5">
+                  {activeSlice.item.label}
+                </text>
+                <text x={tooltipX + 7} y={tooltipY + 28} fill="#e4e4e7" fontSize="10" fontWeight="700">
+                  {formatValue(activeSlice.item.value)}
+                </text>
+              </>
+            );
+          })()}
+        </g>
+      )}
     </svg>
   );
 }
 
 function LineChartSvg({
   values,
+  activePointIndex,
+  onActivePointChange,
+  formatValue,
 }: {
   values: Array<{ label: string; value: number }>;
+  activePointIndex: number | null;
+  onActivePointChange: (index: number | null) => void;
+  formatValue: (value: number) => string;
 }) {
   const max = Math.max(...values.map((item) => item.value), 0);
 
@@ -134,8 +223,28 @@ function LineChartSvg({
     return <p className="py-16 text-center text-sm text-zinc-400">Sem dados para o período selecionado.</p>;
   }
 
+  const points = values.map((item, index) => {
+    const x = values.length === 1 ? 160 : 12 + (index * 296) / (values.length - 1);
+    const y = 136 - (item.value / max) * 110;
+
+    return {
+      ...item,
+      x,
+      y,
+      index,
+    };
+  });
+
+  const activePoint =
+    activePointIndex !== null ? points.find((point) => point.index === activePointIndex) ?? null : null;
+  const hasActive = activePointIndex !== null;
+
   return (
-    <svg viewBox="0 0 320 160" className="h-44 w-full">
+    <svg
+      viewBox="0 0 320 160"
+      className="h-44 w-full"
+      onClick={() => onActivePointChange(null)}
+    >
       <line x1="12" y1="136" x2="308" y2="136" stroke="rgba(255,255,255,0.12)" />
       <polyline
         fill="none"
@@ -143,28 +252,76 @@ function LineChartSvg({
         strokeWidth="3"
         strokeLinecap="round"
         strokeLinejoin="round"
-        points={values
-          .map((item, index) => {
-            const x = values.length === 1 ? 160 : 12 + (index * 296) / (values.length - 1);
-            const y = 136 - (item.value / max) * 110;
-            return `${x},${y}`;
-          })
-          .join(' ')}
+        points={points.map((point) => `${point.x},${point.y}`).join(' ')}
+        opacity={hasActive ? 0.6 : 1}
       />
-      {values.map((item, index) => {
-        const x = values.length === 1 ? 160 : 12 + (index * 296) / (values.length - 1);
-        const y = 136 - (item.value / max) * 110;
+      {points.map((point) => {
+        const isActive = activePoint?.index === point.index;
 
-        return <circle key={`line-${item.label}-${index}`} cx={x} cy={y} r="3.5" fill="#bef264" />;
+        return (
+          <circle
+            key={`line-${point.label}-${point.index}`}
+            cx={point.x}
+            cy={point.y}
+            r={isActive ? '5' : '3.5'}
+            fill="#bef264"
+            opacity={hasActive && !isActive ? 0.3 : 1}
+            className="cursor-pointer"
+            onClick={(event) => {
+              event.stopPropagation();
+              onActivePointChange(isActive ? null : point.index);
+            }}
+          />
+        );
       })}
+
+      {activePoint && (
+        <g pointerEvents="none">
+          {(() => {
+            const tooltipWidth = 130;
+            const tooltipHeight = 38;
+            const tooltipX = Math.min(
+              Math.max(activePoint.x - tooltipWidth / 2, 8),
+              320 - tooltipWidth - 8,
+            );
+            const tooltipY = Math.max(activePoint.y - 52, 8);
+
+            return (
+              <>
+                <rect
+                  x={tooltipX}
+                  y={tooltipY}
+                  width={tooltipWidth}
+                  height={tooltipHeight}
+                  rx="10"
+                  fill="rgba(12, 14, 22, 0.95)"
+                  stroke="rgba(255,255,255,0.16)"
+                />
+                <text x={tooltipX + 10} y={tooltipY + 16} fill="#9ca3af" fontSize="10">
+                  {activePoint.label}
+                </text>
+                <text x={tooltipX + 10} y={tooltipY + 30} fill="#e4e4e7" fontSize="12" fontWeight="700">
+                  {formatValue(activePoint.value)}
+                </text>
+              </>
+            );
+          })()}
+        </g>
+      )}
     </svg>
   );
 }
 
 function BarChartSvg({
   values,
+  activeBarIndex,
+  onActiveBarChange,
+  formatValue,
 }: {
   values: Array<{ label: string; value: number; color?: string }>;
+  activeBarIndex: number | null;
+  onActiveBarChange: (index: number | null) => void;
+  formatValue: (value: number) => string;
 }) {
   const max = Math.max(...values.map((item) => item.value), 0);
 
@@ -176,37 +333,107 @@ function BarChartSvg({
   const totalBarWidth = 296;
   const barWidth = Math.max(8, (totalBarWidth - barGap * (values.length - 1)) / values.length);
 
+  const bars = values.map((item, index) => {
+    const height = (item.value / max) * 108;
+    const x = 12 + index * (barWidth + barGap);
+    const y = 136 - height;
+
+    return {
+      ...item,
+      index,
+      x,
+      y,
+      height,
+      width: barWidth,
+    };
+  });
+
+  const activeBar =
+    activeBarIndex !== null ? bars.find((bar) => bar.index === activeBarIndex) ?? null : null;
+  const hasActive = activeBarIndex !== null;
+
   return (
-    <svg viewBox="0 0 320 160" className="h-44 w-full">
+    <svg
+      viewBox="0 0 320 160"
+      className="h-44 w-full"
+      onClick={() => onActiveBarChange(null)}
+    >
       <line x1="12" y1="136" x2="308" y2="136" stroke="rgba(255,255,255,0.12)" />
-      {values.map((item, index) => {
-        const height = (item.value / max) * 108;
-        const x = 12 + index * (barWidth + barGap);
-        const y = 136 - height;
+      {bars.map((bar) => {
+        const isActive = activeBar?.index === bar.index;
 
         return (
           <rect
-            key={`bar-${item.label}-${index}`}
-            x={x}
-            y={y}
-            width={barWidth}
-            height={height}
+            key={`bar-${bar.label}-${bar.index}`}
+            x={bar.x}
+            y={bar.y}
+            width={bar.width}
+            height={bar.height}
             rx="5"
-            fill={resolveColor(index, item.color)}
+            fill={resolveColor(bar.index, bar.color)}
+            opacity={hasActive && !isActive ? 0.3 : 1}
+            stroke={isActive ? 'rgba(255,255,255,0.3)' : 'transparent'}
+            strokeWidth={isActive ? '1.2' : '0'}
+            className="cursor-pointer"
+            style={isActive ? { filter: 'saturate(1.1) brightness(0.82)' } : undefined}
+            onClick={(event) => {
+              event.stopPropagation();
+              onActiveBarChange(isActive ? null : bar.index);
+            }}
           />
         );
       })}
+
+      {activeBar && (
+        <g pointerEvents="none">
+          {(() => {
+            const tooltipWidth = 130;
+            const tooltipHeight = 38;
+            const tooltipX = Math.min(
+              Math.max(activeBar.x + activeBar.width / 2 - tooltipWidth / 2, 8),
+              320 - tooltipWidth - 8,
+            );
+            const tooltipY = Math.max(activeBar.y - 48, 8);
+
+            return (
+              <>
+                <rect
+                  x={tooltipX}
+                  y={tooltipY}
+                  width={tooltipWidth}
+                  height={tooltipHeight}
+                  rx="10"
+                  fill="rgba(12, 14, 22, 0.95)"
+                  stroke="rgba(255,255,255,0.16)"
+                />
+                <text x={tooltipX + 10} y={tooltipY + 16} fill="#9ca3af" fontSize="10">
+                  {activeBar.label}
+                </text>
+                <text x={tooltipX + 10} y={tooltipY + 30} fill="#e4e4e7" fontSize="12" fontWeight="700">
+                  {formatValue(activeBar.value)}
+                </text>
+              </>
+            );
+          })()}
+        </g>
+      )}
     </svg>
   );
 }
 
 export default function ChartsPage() {
   const router = useRouter();
+  const pieChartContainerRef = useRef<HTMLDivElement>(null);
+  const lineChartContainerRef = useRef<HTMLDivElement>(null);
+  const barChartContainerRef = useRef<HTMLDivElement>(null);
   const { workspace } = useAuth();
   const { month, setMonth, parsed } = useMonthFilter(new Date());
   const { data, isLoading, error } = useReportsAnalytics(parsed.month, parsed.year);
   const [chartKind, setChartKind] = useState<ChartKind>('pie');
   const [metricKind, setMetricKind] = useState<MetricKind>('expenseCategory');
+  const [activePieItemId, setActivePieItemId] = useState<string | null>(null);
+  const [activeLinePointIndex, setActiveLinePointIndex] = useState<number | null>(null);
+  const [activeBarIndex, setActiveBarIndex] = useState<number | null>(null);
 
   const money = (value: number) => formatCurrency(value, workspace?.currency ?? 'EUR');
 
@@ -321,6 +548,50 @@ export default function ChartsPage() {
     return currentMetricItems.map((item) => ({ label: item.label, value: item.value }));
   }, [data, metricKind, currentMetricItems]);
 
+  useEffect(() => {
+    setActivePieItemId(null);
+    setActiveLinePointIndex(null);
+    setActiveBarIndex(null);
+  }, [chartKind, metricKind, month]);
+
+  useEffect(() => {
+    const hasPieSelection = chartKind === 'pie' && !!activePieItemId;
+    const hasLineSelection = chartKind === 'line' && activeLinePointIndex !== null;
+    const hasBarSelection = chartKind === 'bar' && activeBarIndex !== null;
+
+    if (!hasPieSelection && !hasLineSelection && !hasBarSelection) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target as Node | null;
+      if (!target) {
+        return;
+      }
+
+      if (hasPieSelection && pieChartContainerRef.current?.contains(target)) {
+        return;
+      }
+
+      if (hasLineSelection && lineChartContainerRef.current?.contains(target)) {
+        return;
+      }
+
+      if (hasBarSelection && barChartContainerRef.current?.contains(target)) {
+        return;
+      }
+
+      setActivePieItemId((current) => (hasPieSelection ? null : current));
+      setActiveLinePointIndex((current) => (hasLineSelection ? null : current));
+      setActiveBarIndex((current) => (hasBarSelection ? null : current));
+    }
+
+    window.addEventListener('pointerdown', handlePointerDown);
+    return () => {
+      window.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, [chartKind, activePieItemId, activeLinePointIndex, activeBarIndex]);
+
   function prevMonth() {
     const date = new Date(`${month}-01`);
     date.setMonth(date.getMonth() - 1);
@@ -426,19 +697,41 @@ export default function ChartsPage() {
 
               <div className="brand-panel rounded-2xl border border-white/6 p-3">
                 {chartKind === 'pie' ? (
-                  <div className="flex justify-center">
-                    <PieChartSvg values={currentMetricItems.map((item) => ({ value: item.value, color: item.color }))} />
+                  <div ref={pieChartContainerRef} className="flex justify-center">
+                    <PieChartSvg
+                      items={currentMetricItems.map((item) => ({
+                        id: item.id,
+                        label: item.label,
+                        value: item.value,
+                        color: item.color,
+                      }))}
+                      activeItemId={activePieItemId}
+                      onActiveItemChange={setActivePieItemId}
+                      formatValue={money}
+                    />
                   </div>
                 ) : chartKind === 'line' ? (
-                  <LineChartSvg values={lineValues} />
+                  <div ref={lineChartContainerRef}>
+                    <LineChartSvg
+                      values={lineValues}
+                      activePointIndex={activeLinePointIndex}
+                      onActivePointChange={setActiveLinePointIndex}
+                      formatValue={money}
+                    />
+                  </div>
                 ) : (
-                  <BarChartSvg
-                    values={currentMetricItems.map((item) => ({
-                      label: item.label,
-                      value: item.value,
-                      color: item.color,
-                    }))}
-                  />
+                  <div ref={barChartContainerRef}>
+                    <BarChartSvg
+                      values={currentMetricItems.map((item) => ({
+                        label: item.label,
+                        value: item.value,
+                        color: item.color,
+                      }))}
+                      activeBarIndex={activeBarIndex}
+                      onActiveBarChange={setActiveBarIndex}
+                      formatValue={money}
+                    />
+                  </div>
                 )}
               </div>
 

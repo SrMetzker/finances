@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { PageShell } from '@/components/page-shell';
 import { useTransactions } from '@/hooks/use-transactions-api';
 import { useAccounts } from '@/hooks/use-accounts-api';
@@ -16,7 +16,6 @@ import {
   BanknoteArrowDown,
   Minus,
   LayoutGrid,
-  Plus,
   ChevronDown,
 } from 'lucide-react';
 
@@ -39,6 +38,20 @@ function toDayKey(date: Date) {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+function extractTransactionDayKey(rawDate: string) {
+  const isoDateMatch = rawDate.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (isoDateMatch?.[1]) {
+    return isoDateMatch[1];
+  }
+
+  const parsed = new Date(rawDate);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return toDayKey(parsed);
 }
 
 function formatDayLabel(date: Date) {
@@ -69,10 +82,13 @@ function describeArcPath(
 
 export default function DashboardPage() {
   const router = useRouter();
+  const incomeLineChartContainerRef = useRef<HTMLDivElement>(null);
+  const expensePieChartContainerRef = useRef<HTMLDivElement>(null);
   const [showValues, setShowValues] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption>(7);
   const [showAllAccounts, setShowAllAccounts] = useState(false);
   const [activeIncomePointKey, setActiveIncomePointKey] = useState<string | null>(null);
+  const [activeExpenseSliceKey, setActiveExpenseSliceKey] = useState<string | null>(null);
   const { transactions } = useTransactions();
   const { accounts, isLoading: accountsLoading } = useAccounts();
   const { workspaceId, workspace, workspaces, setWorkspaceId } = useAuth();
@@ -90,12 +106,14 @@ export default function DashboardPage() {
     const currentYear = now.getFullYear();
 
     return transactions.reduce((sum, transaction) => {
-      const date = new Date(transaction.date);
-      if (Number.isNaN(date.getTime())) {
+      const dateKey = extractTransactionDayKey(transaction.date);
+      if (!dateKey) {
         return sum;
       }
 
-      if (date.getMonth() !== currentMonth || date.getFullYear() !== currentYear) {
+      const [year, month] = dateKey.split('-').map(Number);
+
+      if (year !== currentYear || (month ?? 1) - 1 !== currentMonth) {
         return sum;
       }
 
@@ -138,14 +156,16 @@ export default function DashboardPage() {
     const startDate = new Date(now);
     startDate.setHours(0, 0, 0, 0);
     startDate.setDate(startDate.getDate() - (selectedPeriod - 1));
+    const startKey = toDayKey(startDate);
+    const endKey = toDayKey(now);
 
     return transactions.filter((transaction) => {
-      const date = new Date(transaction.date);
-      if (Number.isNaN(date.getTime())) {
+      const dateKey = extractTransactionDayKey(transaction.date);
+      if (!dateKey) {
         return false;
       }
 
-      return date >= startDate && date <= now;
+      return dateKey >= startKey && dateKey <= endKey;
     });
   }, [transactions, selectedPeriod]);
 
@@ -161,12 +181,11 @@ export default function DashboardPage() {
         continue;
       }
 
-      const date = new Date(transaction.date);
-      if (Number.isNaN(date.getTime())) {
+      const key = extractTransactionDayKey(transaction.date);
+      if (!key) {
         continue;
       }
 
-      const key = toDayKey(date);
       incomeByDay.set(key, (incomeByDay.get(key) ?? 0) + Number(transaction.amount));
     }
 
@@ -260,9 +279,84 @@ export default function DashboardPage() {
     [incomePoints, activeIncomePointKey],
   );
 
+  const activeExpenseSlice = useMemo(() => {
+    if (!activeExpenseSliceKey || totalExpensesByCategory <= 0) {
+      return null;
+    }
+
+    const index = expenseCategories.findIndex((item) => item.key === activeExpenseSliceKey);
+    if (index < 0) {
+      return null;
+    }
+
+    const item = expenseCategories[index];
+    const previousTotal = expenseCategories
+      .slice(0, index)
+      .reduce((sum, category) => sum + category.amount, 0);
+    const startAngle = (previousTotal / totalExpensesByCategory) * 360 - 90;
+    const endAngle = ((previousTotal + item.amount) / totalExpensesByCategory) * 360 - 90;
+    const midAngle = startAngle + (endAngle - startAngle) / 2;
+    const point = polarToCartesian(70, 70, 68, midAngle);
+
+    return {
+      item,
+      x: point.x,
+      y: point.y,
+    };
+  }, [activeExpenseSliceKey, expenseCategories, totalExpensesByCategory]);
+
   useEffect(() => {
     setActiveIncomePointKey(null);
+    setActiveExpenseSliceKey(null);
   }, [selectedPeriod]);
+
+  useEffect(() => {
+    if (!activeIncomePointKey) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target as Node | null;
+      if (!target) {
+        return;
+      }
+
+      if (incomeLineChartContainerRef.current?.contains(target)) {
+        return;
+      }
+
+      setActiveIncomePointKey(null);
+    }
+
+    window.addEventListener('pointerdown', handlePointerDown);
+    return () => {
+      window.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, [activeIncomePointKey]);
+
+  useEffect(() => {
+    if (!activeExpenseSliceKey) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target as Node | null;
+      if (!target) {
+        return;
+      }
+
+      if (expensePieChartContainerRef.current?.contains(target)) {
+        return;
+      }
+
+      setActiveExpenseSliceKey(null);
+    }
+
+    window.addEventListener('pointerdown', handlePointerDown);
+    return () => {
+      window.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, [activeExpenseSliceKey]);
 
   function goToTransactionsWithCategoryFilter(item: {
     rootCategoryId?: string;
@@ -378,9 +472,6 @@ export default function DashboardPage() {
                           <p className="text-sm text-green-400">{money(Number(account.currentBalance))}</p>
                         </div>
                       </div>
-                      <button className="font-light text-lime-300" aria-label="Adicionar">
-                        <Plus size={20} />
-                      </button>
                     </li>
                   );
                 })}
@@ -446,7 +537,7 @@ export default function DashboardPage() {
               {maxIncome === 0 ? (
                 <p className="py-10 text-center text-sm text-zinc-400">Sem receitas no período selecionado.</p>
               ) : (
-                <>
+                <div ref={incomeLineChartContainerRef}>
                   <svg
                     viewBox="0 0 320 150"
                     className="h-40 w-full"
@@ -467,26 +558,34 @@ export default function DashboardPage() {
                       strokeWidth="3"
                       strokeLinecap="round"
                       strokeLinejoin="round"
+                      opacity={activeIncomePoint ? 0.6 : 1}
                       points={incomePoints
                         .map((point) => `${point.x},${point.y}`)
                         .join(' ')}
                     />
 
                     {incomePoints.map((point) => (
-                      <circle
-                        key={point.key}
-                        cx={point.x}
-                        cy={point.y}
-                        r="5"
-                        fill="#bef264"
-                        className="cursor-pointer"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          setActiveIncomePointKey((current) =>
-                            current === point.key ? null : point.key,
-                          );
-                        }}
-                      />
+                      (() => {
+                        const isActive = activeIncomePoint?.key === point.key;
+
+                        return (
+                          <circle
+                            key={point.key}
+                            cx={point.x}
+                            cy={point.y}
+                            r={isActive ? '5.5' : '5'}
+                            fill="#bef264"
+                            opacity={activeIncomePoint && !isActive ? 0.3 : 1}
+                            className="cursor-pointer"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setActiveIncomePointKey((current) =>
+                                current === point.key ? null : point.key,
+                              );
+                            }}
+                          />
+                        );
+                      })()
                     ))}
 
                     {activeIncomePoint && (
@@ -540,7 +639,7 @@ export default function DashboardPage() {
                     <span>{incomeSeries[Math.floor(incomeSeries.length / 2)]?.label}</span>
                     <span>{incomeSeries[incomeSeries.length - 1]?.label}</span>
                   </div>
-                </>
+                </div>
               )}
             </div>
 
@@ -551,8 +650,12 @@ export default function DashboardPage() {
                 <p className="py-10 text-center text-sm text-zinc-400">Sem despesas no período selecionado.</p>
               ) : (
                 <div className="grid grid-cols-1 items-center gap-4 sm:grid-cols-[180px_1fr]">
-                  <div className="mx-auto">
-                    <svg viewBox="0 0 140 140" className="h-40 w-40">
+                  <div ref={expensePieChartContainerRef} className="mx-auto">
+                    <svg
+                      viewBox="0 0 140 140"
+                      className="h-40 w-40"
+                      onClick={() => setActiveExpenseSliceKey(null)}
+                    >
                       {expenseCategories.map((item, index) => {
                         const previousTotal = expenseCategories
                           .slice(0, index)
@@ -560,18 +663,66 @@ export default function DashboardPage() {
                         const startAngle = (previousTotal / totalExpensesByCategory) * 360 - 90;
                         const endAngle =
                           ((previousTotal + item.amount) / totalExpensesByCategory) * 360 - 90;
+                        const isActive = activeExpenseSliceKey === item.key;
+                        const hasActive = !!activeExpenseSliceKey;
 
                         return (
                           <path
                             key={item.key}
                             d={describeArcPath(70, 70, 58, startAngle, endAngle)}
                             fill={resolveChartColor(item.color, index)}
-                            stroke="rgba(12, 14, 22, 0.75)"
-                            strokeWidth="1"
+                            stroke={isActive ? 'rgba(255,255,255,0.35)' : 'rgba(12, 14, 22, 0.75)'}
+                            strokeWidth={isActive ? '1.8' : '1'}
+                            opacity={hasActive && !isActive ? 0.3 : 1}
+                            className="cursor-pointer"
+                            style={isActive ? { filter: 'saturate(1.1) brightness(0.82)' } : undefined}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setActiveExpenseSliceKey((current) =>
+                                current === item.key ? null : item.key,
+                              );
+                            }}
                           />
                         );
                       })}
                       <circle cx="70" cy="70" r="30" fill="rgba(15, 17, 24, 0.95)" />
+
+                      {activeExpenseSlice && (
+                        <g pointerEvents="none">
+                          {(() => {
+                            const tooltipWidth = 94;
+                            const tooltipHeight = 36;
+                            const tooltipX = Math.min(
+                              Math.max(activeExpenseSlice.x - tooltipWidth / 2, 4),
+                              140 - tooltipWidth - 4,
+                            );
+                            const tooltipY = Math.min(
+                              Math.max(activeExpenseSlice.y - 44, 4),
+                              140 - tooltipHeight - 4,
+                            );
+
+                            return (
+                              <>
+                                <rect
+                                  x={tooltipX}
+                                  y={tooltipY}
+                                  width={tooltipWidth}
+                                  height={tooltipHeight}
+                                  rx="9"
+                                  fill="rgba(12, 14, 22, 0.95)"
+                                  stroke="rgba(255,255,255,0.18)"
+                                />
+                                <text x={tooltipX + 7} y={tooltipY + 14} fill="#9ca3af" fontSize="8.5">
+                                  {activeExpenseSlice.item.category}
+                                </text>
+                                <text x={tooltipX + 7} y={tooltipY + 28} fill="#e4e4e7" fontSize="10" fontWeight="700">
+                                  {money(activeExpenseSlice.item.amount)}
+                                </text>
+                              </>
+                            );
+                          })()}
+                        </g>
+                      )}
                     </svg>
                   </div>
 
