@@ -6,6 +6,13 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class ReportsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private getUtcMonthRange(month: number, year: number) {
+    return {
+      start: new Date(Date.UTC(year, month - 1, 1)),
+      end: new Date(Date.UTC(year, month, 1)),
+    };
+  }
+
   async analytics(
     workspaceId: string,
     month: number,
@@ -13,8 +20,7 @@ export class ReportsService {
     accountIds: string[] = [],
     categoryIds: string[] = [],
   ) {
-    const start = new Date(year, month - 1, 1);
-    const end = new Date(year, month, 1);
+    const { start, end } = this.getUtcMonthRange(month, year);
 
     const where: Prisma.TransactionWhereInput = {
       workspaceId,
@@ -184,8 +190,7 @@ export class ReportsService {
   }
 
   async monthly(workspaceId: string, month: number, year: number) {
-    const start = new Date(year, month - 1, 1);
-    const end = new Date(year, month, 1);
+    const { start, end } = this.getUtcMonthRange(month, year);
 
     const [incomes, expenses] = await Promise.all([
       this.prisma.transaction.aggregate({
@@ -255,8 +260,7 @@ export class ReportsService {
       }),
     );
 
-    const start = new Date(year, month - 1, 1);
-    const end = new Date(year, month, 1);
+    const { start, end } = this.getUtcMonthRange(month, year);
 
     const byCategory = await this.prisma.transaction.groupBy({
       by: ['categoryId'],
