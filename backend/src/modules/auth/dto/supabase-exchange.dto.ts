@@ -1,27 +1,20 @@
-import {
-  IsBoolean,
-  IsEmail,
-  IsOptional,
-  IsString,
-  MaxLength,
-  MinLength,
-} from 'class-validator';
+import { IsBoolean, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
-export class RegisterDto {
+export class SupabaseExchangeDto {
   @IsString()
-  @MinLength(2)
-  name: string;
-
-  @IsEmail()
-  email: string;
-
-  @IsString()
-  @MinLength(6)
-  password: string;
+  @MinLength(20)
+  accessToken: string;
 
   @IsOptional()
   @IsString()
   @MinLength(2)
+  @MaxLength(60)
+  name?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(2)
+  @MaxLength(120)
   workspaceName?: string;
 
   @IsOptional()

@@ -10,6 +10,8 @@ import type {
   CreateCardDto,
   CreateCategoryDto,
   AuthResponse,
+  SupabaseExchangeDto,
+  MigrateLocalUserDto,
   RegisterDto,
   UpdateProfileDto,
   ChangePasswordDto,
@@ -119,6 +121,14 @@ class ApiClient {
 
   register(data: RegisterDto) {
     return this.request<AuthResponse>('POST', '/auth/register', data);
+  }
+
+  exchangeSupabaseSession(data: SupabaseExchangeDto) {
+    return this.request<AuthResponse>('POST', '/auth/supabase/exchange', data);
+  }
+
+  migrateLocalUser(data: MigrateLocalUserDto) {
+    return this.request<AuthResponse>('POST', '/auth/migrate-local-user', data);
   }
 
   logout() {

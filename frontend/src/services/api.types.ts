@@ -65,6 +65,8 @@ export type User = {
   name: string;
   email: string;
   avatarUrl?: string | null;
+  phone?: string | null;
+  marketingConsent?: boolean;
   lastWorkspaceId?: string | null;
 };
 
@@ -101,6 +103,29 @@ export type RegisterDto = {
   email: string;
   password: string;
   workspaceName?: string;
+  phone?: string;
+  marketingConsent?: boolean;
+  leadSource?: string;
+  leadCampaign?: string;
+};
+
+export type SupabaseExchangeDto = {
+  accessToken: string;
+  name?: string;
+  workspaceName?: string;
+  phone?: string;
+  marketingConsent?: boolean;
+  leadSource?: string;
+  leadCampaign?: string;
+};
+
+export type MigrateLocalUserDto = {
+  email: string;
+  password: string;
+  phone?: string;
+  marketingConsent?: boolean;
+  leadSource?: string;
+  leadCampaign?: string;
 };
 
 export type CreateTransactionDto = {

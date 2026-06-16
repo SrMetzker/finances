@@ -2,7 +2,9 @@ import { Body, Controller, Post, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { MigrateLocalUserDto } from './dto/migrate-local-user.dto';
 import { RegisterDto } from './dto/register.dto';
+import { SupabaseExchangeDto } from './dto/supabase-exchange.dto';
 
 const AUTH_COOKIE_NAME = 'auth_token';
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -52,5 +54,31 @@ export class AuthController {
     res.clearCookie(AUTH_COOKIE_NAME, getCookieOptions());
 
     return { ok: true };
+  }
+
+  @Post('supabase/exchange')
+  async exchangeSupabaseSession(
+    @Body() dto: SupabaseExchangeDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const payload = await this.authService.exchangeSupabaseSession(dto);
+    res.cookie(AUTH_COOKIE_NAME, payload.accessToken, {
+      ...getCookieOptions(),
+      maxAge: ONE_DAY_MS,
+    });
+    return payload;
+  }
+
+  @Post('migrate-local-user')
+  async migrateLocalUser(
+    @Body() dto: MigrateLocalUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const payload = await this.authService.migrateLocalUserToSupabase(dto);
+    res.cookie(AUTH_COOKIE_NAME, payload.accessToken, {
+      ...getCookieOptions(),
+      maxAge: ONE_DAY_MS,
+    });
+    return payload;
   }
 }
