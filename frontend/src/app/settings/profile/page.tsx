@@ -66,6 +66,7 @@ export default function ProfileSettingsPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [name, setName] = useState(user?.name ?? '');
+  const [phone, setPhone] = useState(user?.phone ?? '');
   const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl ?? '');
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
 
@@ -120,6 +121,7 @@ export default function ProfileSettingsPage() {
       await updateProfile({
         name: name.trim(),
         avatarUrl: avatarUrl.trim() || undefined,
+        phone: phone.trim() || undefined,
       });
 
       await refreshUser();
@@ -197,6 +199,19 @@ export default function ProfileSettingsPage() {
               className="brand-panel w-full rounded-2xl border border-white/8 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-lime-300"
               required
             />
+          </div>
+
+          {/* Telefone */}
+          <div className="brand-surface rounded-[1.75rem] p-4">
+            <label className="mb-1 block text-xs text-zinc-400">Telefone</label>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="brand-panel w-full rounded-2xl border border-white/8 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-lime-300"
+              placeholder="(11) 98888-7777"
+            />
+            <p className="mt-1 text-xs text-zinc-500">Opcional. Usado apenas para contato.</p>
           </div>
 
           {message && (

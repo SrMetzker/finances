@@ -73,6 +73,7 @@ export type User = {
 export type UpdateProfileDto = {
   name?: string;
   avatarUrl?: string;
+  phone?: string;
 };
 
 export type ChangePasswordDto = {

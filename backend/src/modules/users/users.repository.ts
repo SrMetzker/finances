@@ -58,7 +58,7 @@ export class UsersRepository {
 
   updateProfile(
     id: string,
-    data: { name?: string; avatarUrl?: string | null },
+    data: { name?: string; avatarUrl?: string | null; phone?: string | null },
   ) {
     return this.prisma.user.update({
       where: { id },
