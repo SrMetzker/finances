@@ -40,6 +40,38 @@ function normalizeApiUrl(rawUrl?: string) {
 const API_URL = normalizeApiUrl(process.env.NEXT_PUBLIC_API_URL);
 const AUTH_EXPIRED_EVENT = 'finances:auth-expired';
 
+function extractApiErrorMessage(
+  payload: unknown,
+  fallback: string,
+) {
+  if (payload && typeof payload === 'object') {
+    const candidate = payload as {
+      message?: unknown;
+      msg?: unknown;
+      error?: unknown;
+      error_description?: unknown;
+      error_code?: unknown;
+    };
+
+    const directMessage =
+      (typeof candidate.message === 'string' && candidate.message.trim()) ||
+      (typeof candidate.msg === 'string' && candidate.msg.trim()) ||
+      (typeof candidate.error_description === 'string' && candidate.error_description.trim()) ||
+      (typeof candidate.error === 'string' && candidate.error.trim()) ||
+      '';
+
+    if (directMessage) {
+      return directMessage;
+    }
+
+    if (typeof candidate.error_code === 'string' && candidate.error_code.trim()) {
+      return `${fallback} (${candidate.error_code})`;
+    }
+  }
+
+  return fallback;
+}
+
 class ApiClient {
   private workspaceId: string | null = null;
 
@@ -108,7 +140,9 @@ class ApiClient {
         }
       }
       const error = await response.json().catch(() => ({}));
-      throw new Error(error.message || `API Error: ${response.statusText}`);
+      throw new Error(
+        extractApiErrorMessage(error, `API Error: ${response.statusText}`),
+      );
     }
 
     return response.json();
