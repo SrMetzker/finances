@@ -82,6 +82,7 @@ export class UsersService {
     const payload: {
       name?: string;
       avatarUrl?: string | null;
+      phone?: string | null;
     } = {};
 
     if (dto.name !== undefined) {
@@ -90,6 +91,10 @@ export class UsersService {
 
     if (dto.avatarUrl !== undefined) {
       payload.avatarUrl = dto.avatarUrl.trim() || null;
+    }
+
+    if (dto.phone !== undefined) {
+      payload.phone = dto.phone.trim() || null;
     }
 
     const updated = await this.usersRepository.updateProfile(userId, payload);

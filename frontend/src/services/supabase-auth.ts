@@ -7,6 +7,8 @@ type SupabaseSignInResponse = {
 };
 
 type SupabaseError = {
+  code?: number;
+  error_code?: string;
   error?: string;
   error_description?: string;
   msg?: string;
@@ -32,11 +34,25 @@ function ensureSupabaseEnv() {
 }
 
 function parseSupabaseError(payload: SupabaseError, fallback: string) {
-  return (
+  const rawMessage =
     payload.error_description?.trim() ||
     payload.message?.trim() ||
     payload.msg?.trim() ||
     payload.error?.trim() ||
+    '';
+
+  // Friendly copy for common Supabase validation failure in signup payloads.
+  if (
+    payload.error_code === 'validation_failed' ||
+    /only an email address or phone number should be provided on signup/i.test(
+      rawMessage,
+    )
+  ) {
+    return 'Falha no cadastro: o provedor de autenticação exige apenas e-mail para este fluxo.';
+  }
+
+  return (
+    rawMessage ||
     fallback
   );
 }
@@ -81,7 +97,6 @@ export async function supabaseSignUpWithPassword(input: {
       data: {
         name: input.name,
       },
-      phone: input.phone,
     }),
   });
 

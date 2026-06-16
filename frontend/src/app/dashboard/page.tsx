@@ -91,7 +91,7 @@ export default function DashboardPage() {
   const [activeExpenseSliceKey, setActiveExpenseSliceKey] = useState<string | null>(null);
   const { transactions } = useTransactions();
   const { accounts, isLoading: accountsLoading } = useAccounts();
-  const { workspaceId, workspace, workspaces, setWorkspaceId } = useAuth();
+  const { user, workspaceId, workspace, workspaces, setWorkspaceId } = useAuth();
 
   const dashboardAccounts = useMemo(
     () => accounts.filter((account) => account.showOnDashboard !== false),
@@ -398,6 +398,21 @@ export default function DashboardPage() {
         </label>
       }
     >
+      {/* phone capture banner */}
+      {user && !user.phone && (
+        <Link
+          href="/settings/profile"
+          className="mx-4 mt-4 flex items-center gap-3 rounded-2xl border border-lime-400/30 bg-lime-400/8 px-4 py-3"
+        >
+          <span className="text-lg">📱</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-lime-300">Adicione seu telefone</p>
+            <p className="text-xs text-zinc-400 truncate">Toque para completar seu perfil</p>
+          </div>
+          <span className="text-zinc-400 text-xs">→</span>
+        </Link>
+      )}
+
       {/* balance header */}
       <div className="px-4 pt-6 pb-7 text-center">
         <p className="text-sm text-zinc-400 mb-1">Saldo em contas</p>
