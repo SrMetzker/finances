@@ -3,7 +3,12 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/services/auth.context';
+import { getErrorMessage, notify } from '@/services/toast';
 import { ArrowRight, Eye, EyeOff, LogOut } from 'lucide-react';
+
+function toInternalErrorMessage(error: unknown) {
+  return `Erro interno: '${getErrorMessage(error, 'Erro inesperado.')}'`;
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -84,7 +89,9 @@ export default function LoginPage() {
         router.push('/dashboard');
       }, 500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao fazer login');
+      const message = toInternalErrorMessage(err);
+      setError(message);
+      notify.error(message, message);
     }
   };
 
@@ -113,7 +120,9 @@ export default function LoginPage() {
         router.push('/dashboard');
       }, 500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao criar conta');
+      const message = toInternalErrorMessage(err);
+      setError(message);
+      notify.error(message, message);
     }
   };
 
@@ -267,7 +276,7 @@ export default function LoginPage() {
                     className="mt-0.5"
                   />
                   <span>
-                    Aceito receber novidades e conteúdos por e-mail/telefone. Voce pode sair quando quiser.
+                    Aceito receber novidades e conteúdos por e-mail/telefone.
                   </span>
                 </label>
               </>
@@ -294,7 +303,7 @@ export default function LoginPage() {
           <p className="mt-6 text-center text-xs text-zinc-500">
             {mode === 'login'
               ? 'Entre com sua conta para acessar seu workspace.'
-              : 'Crie sua conta e ja comece com um workspace pronto para usar.'}
+              : 'Crie sua conta e já comece com um workspace pronto para usar.'}
           </p>
         </div>
       </div>
