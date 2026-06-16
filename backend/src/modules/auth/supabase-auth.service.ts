@@ -23,6 +23,13 @@ type SupabaseAdminCreateUserResponse = {
   };
 };
 
+function normalizeSupabaseBaseUrl(rawUrl: string) {
+  const trimmed = rawUrl.trim().replace(/\/+$/, '');
+
+  // Accept wrongly pasted API paths and keep only the project base URL.
+  return trimmed.replace(/\/(auth|rest)\/v1(?:\/.*)?$/i, '');
+}
+
 @Injectable()
 export class SupabaseAuthService {
   private readonly supabaseUrl: string;
@@ -120,6 +127,9 @@ export class SupabaseAuthService {
 
   private readConfig(key: string) {
     const value = this.configService.get<string>(key)?.trim() || '';
+    if (key === 'SUPABASE_URL') {
+      return normalizeSupabaseBaseUrl(value);
+    }
     return value.replace(/\/+$/, '');
   }
 
