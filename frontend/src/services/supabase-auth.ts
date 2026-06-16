@@ -13,7 +13,16 @@ type SupabaseError = {
   message?: string;
 };
 
-const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim().replace(/\/+$/, '');
+function normalizeSupabaseBaseUrl(rawUrl: string) {
+  const trimmed = rawUrl.trim().replace(/\/+$/, '');
+
+  // Accept wrongly pasted API paths and keep only the project base URL.
+  return trimmed.replace(/\/(auth|rest)\/v1(?:\/.*)?$/i, '');
+}
+
+const supabaseUrl = normalizeSupabaseBaseUrl(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+);
 const supabaseAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim();
 
 function ensureSupabaseEnv() {
