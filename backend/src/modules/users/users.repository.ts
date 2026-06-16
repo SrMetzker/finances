@@ -9,13 +9,32 @@ export type UserEntity = {
   password: string;
   avatarUrl?: string | null;
   lastWorkspaceId?: string | null;
+  supabaseAuthId?: string | null;
+  phone?: string | null;
+  marketingConsent?: boolean;
+  leadSource?: string | null;
+  leadCampaign?: string | null;
+  authProvider?: string;
+  migratedToSupabaseAt?: Date | null;
 };
 
 @Injectable()
 export class UsersRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(data: { name: string; email: string; password: string }) {
+  create(data: {
+    name: string;
+    email: string;
+    password: string;
+    avatarUrl?: string | null;
+    supabaseAuthId?: string | null;
+    phone?: string | null;
+    marketingConsent?: boolean;
+    leadSource?: string | null;
+    leadCampaign?: string | null;
+    authProvider?: string;
+    migratedToSupabaseAt?: Date | null;
+  }) {
     return this.prisma.user.create({ data }) as Promise<UserEntity>;
   }
 
@@ -28,6 +47,12 @@ export class UsersRepository {
   findById(id: string) {
     return this.prisma.user.findUnique({
       where: { id },
+    }) as Promise<UserEntity | null>;
+  }
+
+  findBySupabaseAuthId(supabaseAuthId: string) {
+    return this.prisma.user.findUnique({
+      where: { supabaseAuthId },
     }) as Promise<UserEntity | null>;
   }
 
@@ -63,6 +88,24 @@ export class UsersRepository {
     return this.prisma.user.update({
       where: { id },
       data: { lastWorkspaceId: workspaceId },
+    }) as Promise<UserEntity>;
+  }
+
+  updateSupabaseLink(
+    id: string,
+    data: {
+      supabaseAuthId: string;
+      phone?: string | null;
+      marketingConsent?: boolean;
+      leadSource?: string | null;
+      leadCampaign?: string | null;
+      authProvider?: string;
+      migratedToSupabaseAt?: Date;
+    },
+  ) {
+    return this.prisma.user.update({
+      where: { id },
+      data,
     }) as Promise<UserEntity>;
   }
 

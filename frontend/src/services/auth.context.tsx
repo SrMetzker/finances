@@ -9,7 +9,24 @@ import {
   ReactNode,
 } from 'react';
 import { apiClient } from '@/services/api.client';
-import type { User, Workspace, RegisterDto, UpdateProfileDto } from '@/services/api.types';
+import type {
+  AuthResponse,
+  User,
+  Workspace,
+  RegisterDto,
+  UpdateProfileDto,
+} from '@/services/api.types';
+import {
+  supabaseSignInWithPassword,
+  supabaseSignUpWithPassword,
+} from '@/services/supabase-auth';
+
+type LoginLeadData = {
+  phone?: string;
+  marketingConsent?: boolean;
+  leadSource?: string;
+  leadCampaign?: string;
+};
 
 interface AuthContextType {
   user: User | null;
@@ -18,7 +35,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   workspaceId: string | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, leadData?: LoginLeadData) => Promise<void>;
   register: (input: RegisterDto) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
@@ -49,6 +66,10 @@ async function clearFrontendSession() {
   await fetch('/api/session', {
     method: 'DELETE',
   });
+}
+
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -138,10 +159,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [syncWorkspaces]);
 
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string, leadData?: LoginLeadData) => {
     try {
       setIsLoading(true);
-      const response = await apiClient.login(email, password);
+      let response: AuthResponse;
+
+      try {
+        const supabaseSession = await supabaseSignInWithPassword(
+          normalizeEmail(email),
+          password,
+        );
+
+        response = await apiClient.exchangeSupabaseSession({
+          accessToken: supabaseSession.access_token,
+          phone: leadData?.phone,
+          marketingConsent: leadData?.marketingConsent,
+          leadSource: leadData?.leadSource,
+          leadCampaign: leadData?.leadCampaign,
+        });
+      } catch {
+        try {
+          response = await apiClient.migrateLocalUser({
+            email: normalizeEmail(email),
+            password,
+            phone: leadData?.phone,
+            marketingConsent: leadData?.marketingConsent,
+            leadSource: leadData?.leadSource,
+            leadCampaign: leadData?.leadCampaign,
+          });
+        } catch {
+          // Fallback temporário para preservar acesso caso a migração não esteja habilitada.
+          response = await apiClient.login(normalizeEmail(email), password);
+        }
+      }
+
       await persistFrontendSession(response.accessToken);
       setUser(response.user);
       await syncWorkspaces(response.workspace?.id ?? null, response.workspace ?? null);
@@ -153,7 +204,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = useCallback(async (input: RegisterDto) => {
     try {
       setIsLoading(true);
-      const response = await apiClient.register(input);
+
+      const signup = await supabaseSignUpWithPassword({
+        email: normalizeEmail(input.email),
+        password: input.password,
+        name: input.name.trim(),
+        phone: input.phone?.trim() || undefined,
+      });
+
+      if (!signup.access_token) {
+        throw new Error(
+          'Cadastro criado no Supabase. Confirme seu e-mail e faça login para concluir a vinculação da conta.',
+        );
+      }
+
+      const response = await apiClient.exchangeSupabaseSession({
+        accessToken: signup.access_token,
+        name: input.name.trim(),
+        workspaceName: input.workspaceName?.trim() || undefined,
+        phone: input.phone?.trim() || undefined,
+        marketingConsent: input.marketingConsent,
+        leadSource: input.leadSource,
+        leadCampaign: input.leadCampaign,
+      });
+
       await persistFrontendSession(response.accessToken);
       setUser(response.user);
 

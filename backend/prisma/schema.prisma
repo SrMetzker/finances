@@ -20,16 +20,23 @@ enum TransactionType {
 }
 
 model User {
-  id           String            @id @default(cuid())
-  name         String
-  email        String            @unique
-  password     String
-  avatarUrl    String?
-  lastWorkspaceId String?
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  memberships  WorkspaceMember[]
-  transactions Transaction[]
+  id                   String            @id @default(cuid())
+  name                 String
+  email                String            @unique
+  password             String
+  avatarUrl            String?
+  lastWorkspaceId      String?
+  supabaseAuthId       String?           @unique
+  phone                String?
+  marketingConsent     Boolean           @default(false)
+  leadSource           String?
+  leadCampaign         String?
+  authProvider         String            @default("local")
+  migratedToSupabaseAt DateTime?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  memberships          WorkspaceMember[]
+  transactions         Transaction[]
 }
 
 model Workspace {

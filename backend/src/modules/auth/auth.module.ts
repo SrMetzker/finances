@@ -7,6 +7,7 @@ import { WorkspacesModule } from '../workspaces/workspaces.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
+import { SupabaseAuthService } from './supabase-auth.service';
 
 @Module({
   imports: [
@@ -28,7 +29,7 @@ import { JwtStrategy } from './jwt.strategy';
       },
     }),
   ],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, SupabaseAuthService],
   controllers: [AuthController],
 })
 export class AuthModule {}

@@ -13,7 +13,19 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
-  create(data: { name: string; email: string; password: string }) {
+  create(data: {
+    name: string;
+    email: string;
+    password: string;
+    avatarUrl?: string | null;
+    supabaseAuthId?: string | null;
+    phone?: string | null;
+    marketingConsent?: boolean;
+    leadSource?: string | null;
+    leadCampaign?: string | null;
+    authProvider?: string;
+    migratedToSupabaseAt?: Date | null;
+  }) {
     return this.usersRepository.create(data);
   }
 
@@ -23,6 +35,25 @@ export class UsersService {
 
   findById(id: string) {
     return this.usersRepository.findById(id);
+  }
+
+  findBySupabaseAuthId(supabaseAuthId: string) {
+    return this.usersRepository.findBySupabaseAuthId(supabaseAuthId);
+  }
+
+  linkToSupabase(
+    userId: string,
+    data: {
+      supabaseAuthId: string;
+      phone?: string | null;
+      marketingConsent?: boolean;
+      leadSource?: string | null;
+      leadCampaign?: string | null;
+      authProvider?: string;
+      migratedToSupabaseAt?: Date;
+    },
+  ) {
+    return this.usersRepository.updateSupabaseLink(userId, data);
   }
 
   async getPublicProfile(userId: string) {
@@ -36,6 +67,8 @@ export class UsersService {
       name: found.name,
       email: found.email,
       avatarUrl: found.avatarUrl,
+      phone: found.phone ?? null,
+      marketingConsent: found.marketingConsent ?? false,
       lastWorkspaceId: found.lastWorkspaceId ?? null,
     };
   }
@@ -66,6 +99,8 @@ export class UsersService {
       name: updated.name,
       email: updated.email,
       avatarUrl: updated.avatarUrl,
+      phone: updated.phone ?? null,
+      marketingConsent: updated.marketingConsent ?? false,
       lastWorkspaceId: updated.lastWorkspaceId ?? null,
     };
   }

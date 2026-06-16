@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/services/auth.context';
 import { ArrowRight, Eye, EyeOff, LogOut } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login, register, isLoading, isAuthenticated, user, logout } = useAuth();
 
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -14,11 +15,16 @@ export default function LoginPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [marketingConsent, setMarketingConsent] = useState(false);
   const [workspaceName, setWorkspaceName] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const leadSource = searchParams.get('utm_source')?.trim() || undefined;
+  const leadCampaign = searchParams.get('utm_campaign')?.trim() || undefined;
 
   // If already authenticated, show logout option
   if (isAuthenticated && user) {
@@ -39,6 +45,8 @@ export default function LoginPage() {
               setName('');
               setEmail('');
               setPassword('');
+              setPhone('');
+              setMarketingConsent(false);
               setWorkspaceName('');
               setConfirmPassword('');
               setMode('login');
@@ -65,7 +73,12 @@ export default function LoginPage() {
     setError('');
 
     try {
-      await login(email, password);
+      await login(email, password, {
+        phone: phone.trim() || undefined,
+        marketingConsent,
+        leadSource,
+        leadCampaign,
+      });
       // Redirect to dashboard
       setTimeout(() => {
         router.push('/dashboard');
@@ -89,6 +102,10 @@ export default function LoginPage() {
         name: name.trim(),
         email: email.trim(),
         password,
+        phone: phone.trim() || undefined,
+        marketingConsent,
+        leadSource,
+        leadCampaign,
         workspaceName: workspaceName.trim() || undefined,
       });
 
@@ -214,6 +231,19 @@ export default function LoginPage() {
                 </div>
 
                 <div>
+                  <label className="block text-sm font-medium text-zinc-200 mb-2">Telefone</label>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    disabled={isLoading}
+                    className="brand-panel w-full rounded-2xl border border-white/8 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-lime-300 disabled:opacity-50"
+                    placeholder="(11) 98888-7777"
+                    required
+                  />
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium text-zinc-200 mb-2">Nome do workspace</label>
                   <input
                     type="text"
@@ -227,6 +257,19 @@ export default function LoginPage() {
                     Se deixar vazio, criaremos um workspace automaticamente para voce.
                   </p>
                 </div>
+
+                <label className="flex items-start gap-2 rounded-2xl border border-white/8 bg-white/5 p-3 text-xs text-zinc-300">
+                  <input
+                    type="checkbox"
+                    checked={marketingConsent}
+                    onChange={(e) => setMarketingConsent(e.target.checked)}
+                    disabled={isLoading}
+                    className="mt-0.5"
+                  />
+                  <span>
+                    Aceito receber novidades e conteúdos por e-mail/telefone. Voce pode sair quando quiser.
+                  </span>
+                </label>
               </>
             )}
 
