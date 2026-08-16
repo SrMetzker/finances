@@ -73,9 +73,26 @@ cd backend
 npx prisma migrate dev --name init
 ```
 
-### 4. Iniciar em desenvolvimento
+As migrations criam somente a estrutura do banco. Elas não criam usuários ou dados de demonstração.
+
+### 4. Popular dados de demonstração
 
 ```bash
+npm run seed
+```
+
+O seed remove os dados atuais do banco e cria o usuário de demonstração:
+
+| Campo | Valor |
+|---|---|
+| E-mail | `joao@example.com` |
+| Senha | `senha123` |
+
+### 5. Iniciar em desenvolvimento
+
+```bash
+cd ..
+
 # Terminal 1 — API
 npm run dev:backend        # http://localhost:3001
 
@@ -107,13 +124,13 @@ POST /auth/login
 
 **Registro — Request:**
 ```json
-{ "name": "João", "email": "joao@email.com", "password": "123456" }
+{ "name": "João", "email": "joao@example.com", "password": "senha123" }
 ```
 **Resposta:**
 ```json
 {
   "accessToken": "eyJhb...",
-  "user": { "id": "clxxx", "name": "João", "email": "joao@email.com" }
+  "user": { "id": "clxxx", "name": "João", "email": "joao@examplo.com" }
 }
 ```
 
