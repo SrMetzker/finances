@@ -398,11 +398,12 @@ export default function DashboardPage() {
         </label>
       }
     >
+      <div className="flex flex-col lg:mx-auto lg:grid lg:max-w-7xl lg:grid-cols-3 lg:gap-6 lg:px-8 lg:py-8">
       {/* phone capture banner */}
       {user && !user.phone && (
         <Link
           href="/settings/profile"
-          className="mx-4 mt-4 flex items-center gap-3 rounded-2xl border border-lime-400/30 bg-lime-400/8 px-4 py-3"
+          className="mx-4 mt-4 flex items-center gap-3 rounded-2xl border border-lime-400/30 bg-lime-400/8 px-4 py-3 lg:col-span-3 lg:mx-0"
         >
           <span className="text-lg">📱</span>
           <div className="flex-1 min-w-0">
@@ -414,39 +415,45 @@ export default function DashboardPage() {
       )}
 
       {/* balance header */}
-      <div className="px-4 pt-6 pb-7 text-center">
-        <p className="text-sm text-zinc-400 mb-1">Saldo em contas</p>
-        <p className="text-4xl font-bold tracking-tight">
-          {accountsLoading ? '....' : money(totalBalance)}
-        </p>
-        <button
-          type="button"
-          onClick={() => setShowValues((v) => !v)}
-          className="mx-auto mt-3 text-zinc-500"
-          aria-label={showValues ? 'Ocultar valores' : 'Exibir valores'}
-        >
-          {showValues ? <Eye size={18} /> : <EyeOff size={18} />}
-        </button>
+      <div className="px-4 pt-6 pb-7 text-center lg:col-span-3 lg:px-0 lg:py-0 lg:pb-2">
+        <div className="lg:flex lg:flex-col items-center">
+          <div>
+            <p className="text-sm text-zinc-400 mb-1">Saldo em contas</p>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowValues((v) => !v)}
+                className="inline-flex items-center justify-center text-zinc-500"
+                aria-label={showValues ? 'Ocultar valores' : 'Exibir valores'}
+              >
+                {showValues ? <Eye size={20} /> : <EyeOff size={20} />}
+              </button>
+              <p className="text-4xl font-bold tracking-tight lg:text-3xl">
+                {accountsLoading ? '....' : money(totalBalance)}
+              </p>
+            </div>
+          </div>
 
-        <Link
-          href="/transactions"
-          className="brand-panel mt-5 mx-auto flex w-full max-w-64 items-center justify-center gap-3 rounded-2xl border border-white/8 px-4 py-3 transition hover:border-white/15"
-          aria-label="Abrir transações"
-        >
-          <div className={`h-9 w-9 rounded-full ${monthlyBalanceTone.iconBgClass} flex items-center justify-center flex-shrink-0`}>
-            <monthlyBalanceTone.ValueIcon size={16} />
-          </div>
-          <div className="text-left">
-            <p className="text-xs text-zinc-400">Balanço mensal</p>
-            <p className={`text-sm font-semibold ${monthlyBalanceTone.wrapperClass}`}>
-              {money(monthlyBalance)}
-            </p>
-          </div>
-        </Link>
+          <Link
+            href="/transactions"
+            className="brand-panel mt-5 mx-auto flex w-full max-w-64 items-center justify-center gap-3 rounded-2xl border border-white/8 px-4 py-3 transition hover:border-white/15 lg:mx-0 lg:mt-5 lg:w-auto lg:min-w-64"
+            aria-label="Abrir transações"
+          >
+            <div className={`h-9 w-9 rounded-full ${monthlyBalanceTone.iconBgClass} flex items-center justify-center flex-shrink-0`}>
+              <monthlyBalanceTone.ValueIcon size={16} />
+            </div>
+            <div className="text-left">
+              <p className="text-xs text-zinc-400">Balanço mensal</p>
+              <p className={`text-sm font-semibold ${monthlyBalanceTone.wrapperClass}`}>
+                {money(monthlyBalance)}
+              </p>
+            </div>
+          </Link>
+        </div>
       </div>
 
       {/* accounts card */}
-      <div className="brand-surface mx-4 mb-4 rounded-[1.75rem] p-4">
+      <div className="brand-surface order-1 mx-4 mb-4 rounded-[1.75rem] p-4 lg:order-2 lg:col-span-1 lg:mx-0 lg:mb-0 lg:self-start">
         <div className="flex items-center justify-between mb-1">
           <Link href="/accounts" className="font-semibold text-base">
             Contas
@@ -511,7 +518,7 @@ export default function DashboardPage() {
       </div>
 
       {/* evolution section */}
-      <div className="brand-surface mx-4 mb-4 rounded-[1.75rem] p-4">
+      <div className="brand-surface order-2 mx-4 mb-4 rounded-[1.75rem] p-4 lg:order-1 lg:col-span-2 lg:mx-0 lg:mb-0">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h3 className="text-base font-semibold">Evolução</h3>
           <div className="flex items-center gap-1 rounded-full border border-white/8 bg-white/5 p-1">
@@ -775,6 +782,7 @@ export default function DashboardPage() {
             </div>
           </div>
         )}
+      </div>
       </div>
     </PageShell>
   );

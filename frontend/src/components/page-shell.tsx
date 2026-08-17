@@ -18,6 +18,7 @@ import {
 import { type ReactNode, useMemo, useState } from 'react';
 import { QuickActionsMenu, type QuickActionItem } from '@/components/quick-actions-menu';
 import { NewTransactionModal } from '@/components/new-transaction-modal';
+import { Sidebar } from '@/components/sidebar';
 import { useTransactions } from '@/hooks/use-transactions-api';
 import { useAuth } from '@/services/auth.context';
 import type { CreateTransactionDto, TransactionType } from '@/services/api.types';
@@ -141,16 +142,29 @@ export function PageShell({
     }
   }
 
+  function handleSidebarAddTransaction() {
+    if (onHeaderAdd) {
+      onHeaderAdd();
+      return;
+    }
+
+    setNewTransactionType('SAIDA');
+    setShowNewTransactionModal(true);
+  }
+
   return (
-    <div className="brand-grid flex min-h-screen flex-col text-[var(--text)]">
+    <div className="brand-grid flex min-h-screen text-[var(--text)] lg:items-start">
+      {!hideBottomNav && <Sidebar onAddTransaction={handleSidebarAddTransaction} />}
+
+      <div className="flex min-h-screen flex-1 flex-col">
       {/* top bar */}
-      <header className="brand-panel sticky top-0 z-30 flex items-center justify-between border-b border-white/5 px-4 py-3 backdrop-blur-xl">
+      <header className="brand-panel sticky top-0 z-30 flex items-center justify-between border-b border-white/5 px-4 py-3 backdrop-blur-xl lg:px-8 lg:py-5">
         {backHref ? (
           <Link href={backHref} className="flex h-9 w-9 items-center justify-center">
             <ArrowLeft size={22} />
           </Link>
         ) : (
-          <div className="relative">
+          <div className="relative lg:hidden">
             <button
               type="button"
               onClick={handleAvatarClick}
@@ -193,7 +207,7 @@ export function PageShell({
         )}
 
         {typeof title === 'string' ? (
-          <button className="flex items-center gap-1 text-base font-semibold tracking-[0.02em]">
+          <button className="flex items-center gap-1 text-base font-semibold tracking-[0.02em] lg:text-xl lg:font-bold">
             {title}
           </button>
         ) : (
@@ -220,20 +234,20 @@ export function PageShell({
       </header>
 
       {/* content */}
-      <main className={`flex-1 ${hideBottomNav ? '' : 'pb-20'}`}>{children}</main>
+      <main className={`flex-1 ${hideBottomNav ? '' : 'pb-20 lg:pb-0'}`}>{children}</main>
 
       {showQuickActions && !hideBottomNav && (
         <button
           type="button"
           aria-label="Fechar menu de ações rápidas"
           onClick={() => setShowQuickActions(false)}
-          className="fixed inset-0 z-40 bg-black/75"
+          className="fixed inset-0 z-40 bg-black/75 lg:hidden"
         />
       )}
 
-      {/* bottom nav */}
+      {/* bottom nav (mobile only, desktop uses the sidebar) */}
       {!hideBottomNav && (
-        <nav className="brand-panel fixed bottom-0 left-0 right-0 z-50 flex h-16 items-end border-t border-white/5 backdrop-blur-xl">
+        <nav className="brand-panel fixed bottom-0 left-0 right-0 z-50 flex h-16 items-end border-t border-white/5 backdrop-blur-xl lg:hidden">
           {BOTTOM_NAV.map((item) =>
             item === null ? (
               <QuickActionsMenu
@@ -267,6 +281,7 @@ export function PageShell({
         onClose={closeNewTransactionModal}
         onSubmit={handleCreateTransaction}
       />
+      </div>
     </div>
   );
 }
