@@ -74,6 +74,10 @@ export class NotificationsRepository {
     });
   }
 
+  clearForUser(userId: string) {
+    return this.prisma.notification.deleteMany({ where: { userId } });
+  }
+
   savePushSubscription(userId: string, data: { endpoint: string; p256dh: string; auth: string; userAgent?: string }) {
     return this.prisma.pushSubscription.upsert({
       where: { endpoint: data.endpoint },

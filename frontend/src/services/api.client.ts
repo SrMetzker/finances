@@ -218,6 +218,10 @@ class ApiClient {
     return this.request<{ count: number }>('PATCH', `/notifications/inbox/${id}/read`);
   }
 
+  clearNotifications() {
+    return this.request<{ deleted: number }>('DELETE', '/notifications/inbox');
+  }
+
   getPushPublicKey() {
     return this.request<PushPublicKeyResponse>('GET', '/notifications/push/public-key');
   }
