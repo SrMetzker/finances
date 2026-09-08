@@ -1,15 +1,26 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import type { NotificationPreference } from '@prisma/client';
+import webpush from 'web-push';
 import { NotificationsRepository } from './notifications.repository';
 import { UpdateFinancialHealthPreferenceDto } from './dto/update-financial-health-preference.dto';
+import { PushSubscriptionDto } from './dto/push-subscription.dto';
 
 type LocalClock = { year: number; month: number; day: number; weekday: number; minutes: number };
 
 @Injectable()
 export class NotificationsService implements OnModuleInit, OnModuleDestroy {
   private dispatchTimer?: ReturnType<typeof setInterval>;
+  private readonly logger = new Logger(NotificationsService.name);
+  private readonly pushEnabled: boolean;
 
-  constructor(private readonly repository: NotificationsRepository) {}
+  constructor(private readonly repository: NotificationsRepository, config: ConfigService) {
+    const publicKey = config.get<string>('VAPID_PUBLIC_KEY');
+    const privateKey = config.get<string>('VAPID_PRIVATE_KEY');
+    const subject = config.get<string>('VAPID_SUBJECT');
+    this.pushEnabled = Boolean(publicKey && privateKey && subject);
+    if (this.pushEnabled) webpush.setVapidDetails(subject!, publicKey!, privateKey!);
+  }
 
   onModuleInit() {
     // The delivery rule stays in this service, so a queue/cron can replace this
@@ -64,6 +75,29 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     return this.repository.markRead(userId, notificationId);
   }
 
+  getPushPublicKey() {
+    return { publicKey: process.env.VAPID_PUBLIC_KEY ?? null, enabled: this.pushEnabled };
+  }
+
+  async savePushSubscription(userId: string, dto: PushSubscriptionDto) {
+    try {
+      return await this.repository.savePushSubscription(userId, {
+        endpoint: dto.endpoint,
+        p256dh: dto.keys.p256dh,
+        auth: dto.keys.auth,
+        userAgent: dto.userAgent,
+      });
+    } catch (error) {
+      this.logger.error(`Falha ao salvar assinatura push para o usuário ${userId}`, error instanceof Error ? error.stack : undefined);
+      throw error;
+    }
+  }
+
+  async deletePushSubscription(userId: string, endpoint: string) {
+    await this.repository.deletePushSubscription(userId, endpoint);
+    return { deleted: true };
+  }
+
   // Kept independent from HTTP delivery: a worker/cron can call this same method later.
   async dispatchDueNotifications(userId?: string, now = new Date()) {
     const preferenceForUser = userId
@@ -80,6 +114,31 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
         href: '/charts',
       });
       await this.repository.updateLastSent(preference.id, now);
+      await this.sendPushNotifications(preference.userId, {
+        title: 'Hora de olhar sua saúde financeira',
+        body: 'Veja receitas, despesas e o saldo do período nos seus gráficos.',
+        href: '/charts',
+      });
+    }));
+  }
+
+  private async sendPushNotifications(userId: string, payload: { title: string; body: string; href: string }) {
+    if (!this.pushEnabled) return;
+    const subscriptions = await this.repository.listPushSubscriptions(userId);
+    await Promise.all(subscriptions.map(async (subscription) => {
+      try {
+        await webpush.sendNotification(
+          { endpoint: subscription.endpoint, keys: { p256dh: subscription.p256dh, auth: subscription.auth } },
+          JSON.stringify(payload),
+        );
+      } catch (error: unknown) {
+        const statusCode = (error as { statusCode?: number }).statusCode;
+        if (statusCode === 404 || statusCode === 410) {
+          await this.repository.deletePushSubscriptionByEndpoint(subscription.endpoint);
+          return;
+        }
+        this.logger.warn(`Falha ao enviar push para ${subscription.endpoint}: ${statusCode ?? 'erro desconhecido'}`);
+      }
     }));
   }
 

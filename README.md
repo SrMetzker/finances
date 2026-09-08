@@ -100,6 +100,29 @@ npm run dev:backend        # http://localhost:3001
 npm run dev:frontend       # http://localhost:3000
 ```
 
+### Web Push e PWA
+
+Para ativar notificações push, gere um par VAPID e adicione os valores ao `backend/.env`:
+
+```bash
+npx web-push generate-vapid-keys
+```
+
+```env
+VAPID_SUBJECT="mailto:seu-email@exemplo.com"
+VAPID_PUBLIC_KEY="..."
+VAPID_PRIVATE_KEY="..."
+```
+
+Depois aplique a migration:
+
+```bash
+cd backend
+npx prisma migrate deploy
+```
+
+O frontend pode ser instalado como PWA em HTTPS (ou em `localhost` durante o desenvolvimento). O usuário ativa a permissão em `Configurações > Notificações`; sem VAPID configurado, a inbox interna continua funcionando, mas nenhum push externo é enviado.
+
 ---
 
 ## 🔐 Autenticação

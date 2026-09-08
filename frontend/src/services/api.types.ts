@@ -96,6 +96,20 @@ export type FinancialHealthNotificationPreference = {
   timezone: string;
 };
 
+export type PushPublicKeyResponse = {
+  publicKey: string | null;
+  enabled: boolean;
+};
+
+export type PushSubscriptionInput = {
+  endpoint: string;
+  keys: {
+    p256dh: string;
+    auth: string;
+  };
+  userAgent?: string;
+};
+
 export type NotificationItem = {
   id: string;
   type: 'FINANCIAL_HEALTH';
