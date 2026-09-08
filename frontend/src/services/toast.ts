@@ -13,6 +13,9 @@ export function getErrorMessage(error: unknown, fallback: string) {
 }
 
 export const notify = {
+  info(message: string, description?: string) {
+    toast.info(message, { description });
+  },
   success(message: string) {
     toast.success(message);
   },

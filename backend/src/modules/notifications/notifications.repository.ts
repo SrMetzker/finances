@@ -28,6 +28,7 @@ export class NotificationsRepository {
       time: string;
       timezone: string;
     },
+    resetLastSentAt = false,
   ) {
     return this.prisma.notificationPreference.upsert({
       where: {
@@ -38,7 +39,7 @@ export class NotificationsRepository {
         },
       },
       create: { userId, type: NotificationType.FINANCIAL_HEALTH, channel: NotificationChannel.IN_APP, ...data },
-      update: data,
+      update: { ...data, ...(resetLastSentAt ? { lastSentAt: null } : {}) },
     });
   }
 

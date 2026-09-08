@@ -33,6 +33,14 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
   }
 
   async updateFinancialHealthPreference(userId: string, dto: UpdateFinancialHealthPreferenceDto) {
+    const current = await this.repository.getFinancialHealthPreference(userId);
+    const resetLastSentAt = !current
+      || (!current.enabled && dto.enabled)
+      || String(current.frequency) !== dto.frequency
+      || current.weekday !== (dto.weekday ?? 1)
+      || current.dayOfMonth !== (dto.dayOfMonth ?? 1)
+      || current.time !== dto.time
+      || current.timezone !== dto.timezone;
     const preference = await this.repository.saveFinancialHealthPreference(userId, {
       enabled: dto.enabled,
       frequency: dto.frequency,
@@ -40,7 +48,10 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
       dayOfMonth: dto.dayOfMonth ?? 1,
       time: dto.time,
       timezone: dto.timezone,
-    });
+    }, resetLastSentAt);
+    // A newly selected time may already be due. Dispatch it immediately rather
+    // than waiting for the periodic runner's next minute.
+    if (preference.enabled) await this.dispatchDueNotifications(userId);
     return this.toPreferenceResponse(preference);
   }
 
