@@ -7,6 +7,12 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Finances – Controle Financeiro',
   description: 'App de controle financeiro pessoal estilo Mobills',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    title: 'Finances',
+    statusBarStyle: 'black-translucent',
+  },
 };
 
 export default function RootLayout({

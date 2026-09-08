@@ -28,6 +28,7 @@ export class NotificationsRepository {
       time: string;
       timezone: string;
     },
+    resetLastSentAt = false,
   ) {
     return this.prisma.notificationPreference.upsert({
       where: {
@@ -38,7 +39,7 @@ export class NotificationsRepository {
         },
       },
       create: { userId, type: NotificationType.FINANCIAL_HEALTH, channel: NotificationChannel.IN_APP, ...data },
-      update: data,
+      update: { ...data, ...(resetLastSentAt ? { lastSentAt: null } : {}) },
     });
   }
 
@@ -71,5 +72,25 @@ export class NotificationsRepository {
       where: { id: notificationId, userId, readAt: null },
       data: { readAt: new Date() },
     });
+  }
+
+  savePushSubscription(userId: string, data: { endpoint: string; p256dh: string; auth: string; userAgent?: string }) {
+    return this.prisma.pushSubscription.upsert({
+      where: { endpoint: data.endpoint },
+      create: { userId, ...data },
+      update: { userId, p256dh: data.p256dh, auth: data.auth, userAgent: data.userAgent },
+    });
+  }
+
+  listPushSubscriptions(userId: string) {
+    return this.prisma.pushSubscription.findMany({ where: { userId } });
+  }
+
+  deletePushSubscription(userId: string, endpoint: string) {
+    return this.prisma.pushSubscription.deleteMany({ where: { userId, endpoint } });
+  }
+
+  deletePushSubscriptionByEndpoint(endpoint: string) {
+    return this.prisma.pushSubscription.deleteMany({ where: { endpoint } });
   }
 }

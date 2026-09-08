@@ -21,6 +21,8 @@ import type {
   ReportAnalytics,
   FinancialHealthNotificationPreference,
   NotificationItem,
+  PushPublicKeyResponse,
+  PushSubscriptionInput,
 } from './api.types';
 
 const DEFAULT_API_URL = 'http://localhost:3001/api';
@@ -214,6 +216,18 @@ class ApiClient {
 
   markNotificationRead(id: string) {
     return this.request<{ count: number }>('PATCH', `/notifications/inbox/${id}/read`);
+  }
+
+  getPushPublicKey() {
+    return this.request<PushPublicKeyResponse>('GET', '/notifications/push/public-key');
+  }
+
+  savePushSubscription(data: PushSubscriptionInput) {
+    return this.request<PushSubscriptionInput>('POST', '/notifications/push-subscriptions', data);
+  }
+
+  deletePushSubscription(endpoint: string) {
+    return this.request<{ deleted: boolean }>('DELETE', '/notifications/push-subscriptions', { endpoint });
   }
 
   // Workspaces endpoints

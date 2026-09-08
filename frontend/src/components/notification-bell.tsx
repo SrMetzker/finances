@@ -6,8 +6,9 @@ import { useEffect, useRef, useState } from 'react';
 import { apiClient } from '@/services/api.client';
 import type { NotificationItem } from '@/services/api.types';
 import { useAuth } from '@/services/auth.context';
+import { notify } from '@/services/toast';
 
-const POLL_INTERVAL = 60_000;
+const POLL_INTERVAL = 30_000;
 
 export function NotificationBell() {
   const { user } = useAuth();
@@ -27,6 +28,9 @@ export function NotificationBell() {
         notifications.filter((item) => !item.readAt).forEach((item) => {
           if (announcedIds.current.has(item.id)) return;
           announcedIds.current.add(item.id);
+          // The in-app toast is independent from the browser permission and is
+          // therefore the reliable feedback while the application is open.
+          notify.info(item.title, item.body);
           if ('Notification' in window && Notification.permission === 'granted') {
             const browserNotification = new Notification(item.title, { body: item.body });
             browserNotification.onclick = () => { window.focus(); window.location.assign(item.href); };

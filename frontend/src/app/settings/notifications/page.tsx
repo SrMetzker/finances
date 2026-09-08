@@ -17,6 +17,69 @@ const DEFAULT_PREFERENCE: FinancialHealthNotificationPreference = {
   enabled: false, frequency: 'WEEKLY', weekday: 1, dayOfMonth: 1, time: '09:00', timezone: 'Europe/Madrid',
 };
 
+function decodeVapidKey(value: string) {
+  const padding = '='.repeat((4 - (value.length % 4)) % 4);
+  const base64 = `${value}${padding}`.replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  return Uint8Array.from([...rawData].map((character) => character.charCodeAt(0)));
+}
+
+type PushSetupResult = 'enabled' | 'unsupported' | 'denied' | 'not-configured' | 'service-unavailable' | 'database-error';
+
+async function enableWebPush(): Promise<PushSetupResult> {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+    return 'unsupported';
+  }
+
+  try {
+    const { publicKey, enabled } = await apiClient.getPushPublicKey();
+    if (!enabled || !publicKey) return 'not-configured';
+
+    const permission = Notification.permission === 'granted'
+      ? 'granted'
+      : await Notification.requestPermission();
+    if (permission !== 'granted') return 'denied';
+
+    let subscription: PushSubscription;
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      const activeRegistration = await navigator.serviceWorker.ready;
+      subscription = await activeRegistration.pushManager.getSubscription()
+        ?? await activeRegistration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: decodeVapidKey(publicKey),
+        });
+    } catch {
+      return 'service-unavailable';
+    }
+    const json = subscription.toJSON();
+    if (!json.endpoint || !json.keys?.p256dh || !json.keys.auth) return 'service-unavailable';
+
+    try {
+      await apiClient.savePushSubscription({
+        endpoint: json.endpoint,
+        keys: { p256dh: json.keys.p256dh, auth: json.keys.auth },
+        userAgent: navigator.userAgent,
+      });
+    } catch {
+      return 'database-error';
+    }
+    return 'enabled';
+  } catch (error) {
+    console.error('Falha ao carregar a configuração Web Push.', error);
+    return 'not-configured';
+  }
+}
+
+async function disableWebPush() {
+  if (!('serviceWorker' in navigator)) return;
+  const registration = await navigator.serviceWorker.getRegistration('/');
+  const subscription = await registration?.pushManager.getSubscription();
+  if (!subscription) return;
+  await apiClient.deletePushSubscription(subscription.endpoint);
+  await subscription.unsubscribe();
+}
+
 export default function NotificationSettingsPage() {
   const [preference, setPreference] = useState<FinancialHealthNotificationPreference>(DEFAULT_PREFERENCE);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,18 +99,36 @@ export default function NotificationSettingsPage() {
       .finally(() => setIsLoading(false));
   }, []);
 
-  async function requestBrowserPermission() {
-    if (!('Notification' in window)) return;
-    if (Notification.permission === 'default') await Notification.requestPermission();
-  }
-
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setIsSaving(true);
     try {
-      if (preference.enabled) await requestBrowserPermission();
+      let pushResult: PushSetupResult = 'service-unavailable';
+      if (preference.enabled) {
+        pushResult = await enableWebPush();
+      } else {
+        try {
+          await disableWebPush();
+        } catch {
+          // A preferência desativada deve ser salva mesmo se o navegador já perdeu a assinatura.
+        }
+      }
       await apiClient.updateFinancialHealthNotificationPreference({ ...preference, timezone: browserTimezone() });
-      notify.success('Preferências de notificação salvas.');
+      if (pushResult === 'enabled') {
+        notify.success('Preferências e notificações push ativadas.');
+      } else if (preference.enabled && pushResult === 'denied') {
+        notify.info('Preferência salva. O navegador não autorizou as notificações push.');
+      } else if (preference.enabled && pushResult === 'not-configured') {
+        notify.info('Preferência salva. O backend está sem as chaves VAPID ou precisa ser reiniciado.');
+      } else if (preference.enabled && pushResult === 'database-error') {
+        notify.info('Preferência salva, mas não foi possível registrar este dispositivo no backend.');
+      } else if (preference.enabled && pushResult === 'service-unavailable') {
+        notify.info('Preferência salva. O serviço push não está disponível neste navegador ou ambiente.');
+      } else if (preference.enabled) {
+        notify.info('Preferência salva, mas o Web Push não pôde ser ativado.');
+      } else {
+        notify.success('Preferências de notificação salvas.');
+      }
     } catch (error) {
       notify.error(error, 'Não foi possível salvar suas notificações.');
     } finally {

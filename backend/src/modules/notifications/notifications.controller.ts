@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { UpdateFinancialHealthPreferenceDto } from './dto/update-financial-health-preference.dto';
+import { PushSubscriptionDto } from './dto/push-subscription.dto';
 import { NotificationsService } from './notifications.service';
 
 @Controller('notifications')
@@ -22,4 +23,17 @@ export class NotificationsController {
 
   @Patch('inbox/:id/read')
   markRead(@CurrentUser() user: { sub: string }, @Param('id') id: string) { return this.service.markRead(user.sub, id); }
+
+  @Get('push/public-key')
+  getPushPublicKey() { return this.service.getPushPublicKey(); }
+
+  @Post('push-subscriptions')
+  savePushSubscription(@CurrentUser() user: { sub: string }, @Body() body: PushSubscriptionDto) {
+    return this.service.savePushSubscription(user.sub, body);
+  }
+
+  @Delete('push-subscriptions')
+  deletePushSubscription(@CurrentUser() user: { sub: string }, @Body() body: { endpoint: string }) {
+    return this.service.deletePushSubscription(user.sub, body.endpoint);
+  }
 }
