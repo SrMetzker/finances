@@ -24,6 +24,9 @@ export class NotificationsController {
   @Patch('inbox/:id/read')
   markRead(@CurrentUser() user: { sub: string }, @Param('id') id: string) { return this.service.markRead(user.sub, id); }
 
+  @Delete('inbox')
+  clearInbox(@CurrentUser() user: { sub: string }) { return this.service.clearInbox(user.sub); }
+
   @Get('push/public-key')
   getPushPublicKey() { return this.service.getPushPublicKey(); }
 

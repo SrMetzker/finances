@@ -75,6 +75,11 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     return this.repository.markRead(userId, notificationId);
   }
 
+  async clearInbox(userId: string) {
+    const result = await this.repository.clearForUser(userId);
+    return { deleted: result.count };
+  }
+
   getPushPublicKey() {
     return { publicKey: process.env.VAPID_PUBLIC_KEY ?? null, enabled: this.pushEnabled };
   }

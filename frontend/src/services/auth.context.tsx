@@ -47,6 +47,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const WORKSPACE_CHANGED_EVENT = 'finances:workspace-changed';
 const AUTH_EXPIRED_EVENT = 'finances:auth-expired';
+const USE_LOCAL_AUTH = process.env.NEXT_PUBLIC_AUTH_PROVIDER === 'local';
 
 async function persistFrontendSession(token: string) {
   const response = await fetch('/api/session', {
@@ -164,7 +165,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       let response: AuthResponse;
 
-      try {
+      if (USE_LOCAL_AUTH) {
+        response = await apiClient.login(normalizeEmail(email), password);
+      } else try {
         const supabaseSession = await supabaseSignInWithPassword(
           normalizeEmail(email),
           password,
@@ -204,6 +207,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = useCallback(async (input: RegisterDto) => {
     try {
       setIsLoading(true);
+
+      if (USE_LOCAL_AUTH) {
+        const response = await apiClient.register({
+          ...input,
+          email: normalizeEmail(input.email),
+          name: input.name.trim(),
+        });
+        await persistFrontendSession(response.accessToken);
+        setUser(response.user);
+        await syncWorkspaces(response.workspace?.id ?? null, response.workspace ?? null);
+        return;
+      }
 
       const signup = await supabaseSignUpWithPassword({
         email: normalizeEmail(input.email),

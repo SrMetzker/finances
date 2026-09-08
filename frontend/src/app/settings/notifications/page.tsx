@@ -17,6 +17,9 @@ const DEFAULT_PREFERENCE: FinancialHealthNotificationPreference = {
   enabled: false, frequency: 'WEEKLY', weekday: 1, dayOfMonth: 1, time: '09:00', timezone: 'Europe/Madrid',
 };
 
+const WEB_PUSH_ENABLED = process.env.NODE_ENV === 'production'
+  || process.env.NEXT_PUBLIC_ENABLE_WEB_PUSH === 'true';
+
 function decodeVapidKey(value: string) {
   const padding = '='.repeat((4 - (value.length % 4)) % 4);
   const base64 = `${value}${padding}`.replace(/-/g, '+').replace(/_/g, '/');
@@ -24,9 +27,11 @@ function decodeVapidKey(value: string) {
   return Uint8Array.from([...rawData].map((character) => character.charCodeAt(0)));
 }
 
-type PushSetupResult = 'enabled' | 'unsupported' | 'denied' | 'not-configured' | 'service-unavailable' | 'database-error';
+type PushSetupResult = 'enabled' | 'disabled' | 'unsupported' | 'denied' | 'not-configured' | 'service-unavailable' | 'database-error';
 
 async function enableWebPush(): Promise<PushSetupResult> {
+  if (!WEB_PUSH_ENABLED) return 'disabled';
+
   if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
     return 'unsupported';
   }
@@ -116,6 +121,8 @@ export default function NotificationSettingsPage() {
       await apiClient.updateFinancialHealthNotificationPreference({ ...preference, timezone: browserTimezone() });
       if (pushResult === 'enabled') {
         notify.success('Preferências e notificações push ativadas.');
+      } else if (preference.enabled && pushResult === 'disabled') {
+        notify.info('Preferência salva. Web Push está desabilitado no ambiente de desenvolvimento.');
       } else if (preference.enabled && pushResult === 'denied') {
         notify.info('Preferência salva. O navegador não autorizou as notificações push.');
       } else if (preference.enabled && pushResult === 'not-configured') {
