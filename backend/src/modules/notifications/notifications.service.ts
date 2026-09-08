@@ -27,13 +27,13 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
 
   async getFinancialHealthPreference(userId: string) {
     const preference = await this.repository.getFinancialHealthPreference(userId);
-    return preference ?? {
+    return preference ? this.toPreferenceResponse(preference) : {
       enabled: false, frequency: 'WEEKLY', weekday: 1, dayOfMonth: 1, time: '09:00', timezone: 'Europe/Madrid',
     };
   }
 
-  updateFinancialHealthPreference(userId: string, dto: UpdateFinancialHealthPreferenceDto) {
-    return this.repository.saveFinancialHealthPreference(userId, {
+  async updateFinancialHealthPreference(userId: string, dto: UpdateFinancialHealthPreferenceDto) {
+    const preference = await this.repository.saveFinancialHealthPreference(userId, {
       enabled: dto.enabled,
       frequency: dto.frequency,
       weekday: dto.weekday ?? 1,
@@ -41,6 +41,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
       time: dto.time,
       timezone: dto.timezone,
     });
+    return this.toPreferenceResponse(preference);
   }
 
   async listInbox(userId: string) {
@@ -101,5 +102,16 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     const day = date.getUTCDay() || 7;
     date.setUTCDate(date.getUTCDate() + 4 - day);
     return `${date.getUTCFullYear()}-${Math.ceil((((date.getTime() - Date.UTC(date.getUTCFullYear(), 0, 1)) / 86400000) + 1) / 7)}`;
+  }
+
+  private toPreferenceResponse(preference: NotificationPreference) {
+    return {
+      enabled: preference.enabled,
+      frequency: preference.frequency,
+      weekday: preference.weekday,
+      dayOfMonth: preference.dayOfMonth,
+      time: preference.time,
+      timezone: preference.timezone,
+    };
   }
 }

@@ -24,7 +24,14 @@ export default function NotificationSettingsPage() {
 
   useEffect(() => {
     apiClient.getFinancialHealthNotificationPreference()
-      .then((saved) => setPreference({ ...saved, timezone: saved.timezone || browserTimezone() }))
+      .then((saved) => setPreference({
+        enabled: saved.enabled,
+        frequency: saved.frequency,
+        weekday: saved.weekday,
+        dayOfMonth: saved.dayOfMonth,
+        time: saved.time,
+        timezone: saved.timezone || browserTimezone(),
+      }))
       .catch((error) => notify.error(error, 'Não foi possível carregar suas notificações.'))
       .finally(() => setIsLoading(false));
   }, []);
