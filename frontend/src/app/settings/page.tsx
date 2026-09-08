@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { BriefcaseBusiness, ChevronRight, KeyRound, ShieldAlert, UserCircle2 } from 'lucide-react';
+import { BellRing, BriefcaseBusiness, ChevronRight, KeyRound, ShieldAlert, UserCircle2 } from 'lucide-react';
 import { PageShell } from '@/components/page-shell';
 import { useAuth } from '@/services/auth.context';
 
@@ -12,6 +12,13 @@ const MENU_ITEMS = [
     label: 'Perfil',
     description: 'Nome e foto do perfil',
     iconClass: 'text-lime-300',
+  },
+  {
+    href: '/settings/notifications',
+    icon: BellRing,
+    label: 'Notificações',
+    description: 'Lembretes para acompanhar sua saúde financeira',
+    iconClass: 'text-violet-300',
   },
   {
     href: '/settings/workspace',

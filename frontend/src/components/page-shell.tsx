@@ -19,6 +19,7 @@ import { type ReactNode, useMemo, useState } from 'react';
 import { QuickActionsMenu, type QuickActionItem } from '@/components/quick-actions-menu';
 import { NewTransactionModal } from '@/components/new-transaction-modal';
 import { Sidebar } from '@/components/sidebar';
+import { NotificationBell } from '@/components/notification-bell';
 import { useTransactions } from '@/hooks/use-transactions-api';
 import { useAuth } from '@/services/auth.context';
 import type { CreateTransactionDto, TransactionType } from '@/services/api.types';
@@ -217,7 +218,7 @@ export function PageShell({
         {headerRight !== undefined ? (
           headerRight
         ) : backHref ? (
-          <div className="w-9" />
+          <NotificationBell />
         ) : shouldShowHeaderAdd ? (
           <button
             type="button"
@@ -228,8 +229,7 @@ export function PageShell({
             <Plus size={18} />
           </button>
         ) : (
-          <div className="h-9">
-          </div>
+          <NotificationBell />
         )}
       </header>
 

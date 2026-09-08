@@ -19,6 +19,8 @@ import type {
   CreateWorkspaceDto,
   UpdateWorkspaceDto,
   ReportAnalytics,
+  FinancialHealthNotificationPreference,
+  NotificationItem,
 } from './api.types';
 
 const DEFAULT_API_URL = 'http://localhost:3001/api';
@@ -196,6 +198,22 @@ class ApiClient {
 
   deleteCurrentUserAccount(data: DeleteAccountDto) {
     return this.request<{ deleted: boolean }>('DELETE', '/users/me', data);
+  }
+
+  getFinancialHealthNotificationPreference() {
+    return this.request<FinancialHealthNotificationPreference>('GET', '/notifications/preferences/financial-health');
+  }
+
+  updateFinancialHealthNotificationPreference(data: FinancialHealthNotificationPreference) {
+    return this.request<FinancialHealthNotificationPreference>('PATCH', '/notifications/preferences/financial-health', data);
+  }
+
+  getNotifications() {
+    return this.request<NotificationItem[]>('GET', '/notifications/inbox');
+  }
+
+  markNotificationRead(id: string) {
+    return this.request<{ count: number }>('PATCH', `/notifications/inbox/${id}/read`);
   }
 
   // Workspaces endpoints
