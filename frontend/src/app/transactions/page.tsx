@@ -311,7 +311,7 @@ export default function TransactionsPage() {
       }
     >
       {/* month navigator */}
-      <div className="flex items-center justify-between px-8 py-3">
+      <div className="mx-auto flex max-w-5xl items-center justify-between px-8 py-3 sm:px-6 lg:px-8 lg:pt-8">
         <button onClick={prevMonth} className="rounded-full p-1 text-zinc-400 transition-colors hover:bg-white/6">
           <ChevronLeft size={22} />
         </button>
@@ -322,8 +322,8 @@ export default function TransactionsPage() {
       </div>
 
       {/* balance card */}
-      <div className="brand-surface mx-4 mb-4 flex items-center justify-around rounded-[1.75rem] p-4">
-        <div className="flex items-center gap-2">
+      <div className="brand-surface mx-4 mb-4 flex items-center justify-around gap-3 rounded-[1.75rem] p-4 sm:mx-6 lg:mx-auto lg:max-w-5xl lg:justify-start lg:gap-12 lg:px-8">
+        <div className="min-w-0 flex items-center gap-2">
           <Lock size={16} className="text-green-400" />
           <div>
             <p className="text-xs text-zinc-400">Saldo atual</p>
@@ -331,7 +331,7 @@ export default function TransactionsPage() {
           </div>
         </div>
         <div className="h-8 w-px bg-white/10" />
-        <div className="flex items-center gap-2">
+        <div className="min-w-0 flex items-center gap-2">
           <Wallet size={16} className="text-zinc-400" />
           <div>
             <p className="text-xs text-zinc-400">Balanço mensal</p>
@@ -356,7 +356,7 @@ export default function TransactionsPage() {
           </p>
         </div>
       ) : (
-        <div className="mx-4 space-y-5">
+        <div className="mx-4 space-y-5 sm:mx-6 lg:mx-auto lg:max-w-5xl">
           {groupedTransactions.map((group) => (
             <section key={group.dateKey}>
               <h3 className="mb-2 px-1 text-xl font-semibold tracking-tight text-zinc-100">{group.label}</h3>
@@ -425,7 +425,7 @@ export default function TransactionsPage() {
             onClick={closeFilterPanel}
             aria-label="Fechar filtro"
           />
-          <div className="brand-panel absolute inset-x-0 bottom-0 max-h-[88vh] overflow-y-auto rounded-t-3xl border border-white/6 p-6 shadow-2xl">
+          <div className="brand-panel absolute inset-x-0 bottom-0 max-h-[88vh] overflow-y-auto rounded-t-3xl border border-white/6 p-6 shadow-2xl lg:inset-x-auto lg:left-1/2 lg:w-full lg:max-w-2xl lg:-translate-x-1/2">
             {/* header */}
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-lg font-semibold">Filtrar</h2>

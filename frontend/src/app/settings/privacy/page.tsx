@@ -65,7 +65,7 @@ export default function PrivacySettingsPage() {
 
   return (
     <PageShell title="Privacidade e Conta" backHref="/settings">
-      <div className="mx-4 my-4 space-y-4 pb-6">
+      <div className="mx-4 my-4 max-w-xl space-y-4 pb-6 sm:mx-6 lg:mx-auto lg:my-8">
         {/* Redefinir dados */}
         <div className="brand-surface rounded-[1.75rem] p-4 space-y-3">
           <div>

@@ -242,7 +242,7 @@ function LineChartSvg({
   return (
     <svg
       viewBox="0 0 320 160"
-      className="h-44 w-full"
+      className="h-48 min-w-[300px] w-full sm:min-w-0 lg:h-56"
       onClick={() => onActivePointChange(null)}
     >
       <line x1="12" y1="136" x2="308" y2="136" stroke="rgba(255,255,255,0.12)" />
@@ -355,7 +355,7 @@ function BarChartSvg({
   return (
     <svg
       viewBox="0 0 320 160"
-      className="h-44 w-full"
+      className="h-48 min-w-[300px] w-full sm:min-w-0 lg:h-56"
       onClick={() => onActiveBarChange(null)}
     >
       <line x1="12" y1="136" x2="308" y2="136" stroke="rgba(255,255,255,0.12)" />
@@ -606,8 +606,8 @@ export default function ChartsPage() {
 
   return (
     <PageShell title="Gráficos" backHref="/more">
-      <div className="px-4 py-4 space-y-4">
-        <div className="brand-surface rounded-[1.75rem] p-2">
+      <div className="mx-auto max-w-7xl space-y-4 px-4 py-4 sm:px-6 lg:px-8 lg:py-8">
+        <div className="brand-surface mx-auto max-w-sm rounded-[1.75rem] p-2 lg:mx-0">
           <div className="grid grid-cols-3 gap-2">
             {[
               { id: 'pie', icon: ChartPie },
@@ -631,14 +631,14 @@ export default function ChartsPage() {
         </div>
 
         <div className="brand-surface rounded-[1.75rem] p-4">
-          <div className="mb-4 overflow-x-auto pb-1">
-            <div className="flex min-w-max gap-2">
+          <div className="mb-4 -mx-1 overflow-x-auto px-1 pb-2 [scrollbar-width:thin]">
+            <div className="flex min-w-max snap-x gap-2">
               {metricTabs.map((tab) => (
                 <button
                   key={tab.id}
                   type="button"
                   onClick={() => setMetricKind(tab.id)}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  className={`snap-start whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition ${
                     metricKind === tab.id
                       ? 'brand-gradient text-zinc-950'
                       : 'bg-white/8 text-zinc-300 hover:bg-white/12'
@@ -678,24 +678,24 @@ export default function ChartsPage() {
             <p className="py-16 text-center text-sm text-zinc-400">Sem dados disponíveis.</p>
           ) : (
             <>
-              <div className="mb-4 grid grid-cols-3 gap-2 rounded-2xl border border-white/8 p-3 text-center">
-                <div>
+              <div className="mb-4 grid grid-cols-3 gap-1 rounded-2xl border border-white/8 p-2 text-center sm:gap-2 sm:p-3">
+                <div className="min-w-0">
                   <p className="text-[11px] text-zinc-500">Receitas</p>
-                  <p className="font-semibold text-green-400">{money(data.totals.income)}</p>
+                  <p className="truncate text-xs font-semibold text-green-400 sm:text-sm">{money(data.totals.income)}</p>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-[11px] text-zinc-500">Despesas</p>
-                  <p className="font-semibold text-red-400">{money(data.totals.expense)}</p>
+                  <p className="truncate text-xs font-semibold text-red-400 sm:text-sm">{money(data.totals.expense)}</p>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-[11px] text-zinc-500">Saldo</p>
-                  <p className={`font-semibold ${data.totals.balance >= 0 ? 'text-lime-300' : 'text-red-400'}`}>
+                  <p className={`truncate text-xs font-semibold sm:text-sm ${data.totals.balance >= 0 ? 'text-lime-300' : 'text-red-400'}`}>
                     {money(data.totals.balance)}
                   </p>
                 </div>
               </div>
 
-              <div className="brand-panel rounded-2xl border border-white/6 p-3">
+              <div className="brand-panel overflow-x-auto rounded-2xl border border-white/6 p-3 lg:p-5">
                 {chartKind === 'pie' ? (
                   <div ref={pieChartContainerRef} className="flex justify-center">
                     <PieChartSvg

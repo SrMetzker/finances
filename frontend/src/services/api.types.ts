@@ -85,6 +85,27 @@ export type DeleteAccountDto = {
   password: string;
 };
 
+export type NotificationFrequency = 'WEEKLY' | 'MONTHLY';
+
+export type FinancialHealthNotificationPreference = {
+  enabled: boolean;
+  frequency: NotificationFrequency;
+  weekday: number;
+  dayOfMonth: number;
+  time: string;
+  timezone: string;
+};
+
+export type NotificationItem = {
+  id: string;
+  type: 'FINANCIAL_HEALTH';
+  title: string;
+  body: string;
+  href: string;
+  readAt: string | null;
+  createdAt: string;
+};
+
 export type Workspace = {
   id: string;
   name: string;

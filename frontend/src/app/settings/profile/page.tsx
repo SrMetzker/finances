@@ -136,7 +136,7 @@ export default function ProfileSettingsPage() {
 
   return (
     <PageShell title="Perfil" backHref="/settings">
-      <div className="mx-4 my-4 pb-6">
+      <div className="mx-4 my-4 max-w-2xl pb-6 sm:mx-6 lg:mx-auto lg:my-8">
         <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-4">
           {/* Avatar */}
           <div className="brand-surface rounded-[1.75rem] p-4 space-y-4">
