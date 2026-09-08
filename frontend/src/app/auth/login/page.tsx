@@ -35,7 +35,7 @@ export default function LoginPage() {
   if (isAuthenticated && user) {
     return (
       <div className="brand-grid flex min-h-screen items-center justify-center px-4 py-8">
-        <div className="brand-surface w-full max-w-md rounded-[2rem] p-8">
+        <div className="brand-surface w-full max-w-md rounded-[2rem] p-5 sm:p-8">
           <h1 className="brand-accent-text mb-8 text-center text-3xl font-bold">Finances</h1>
 
           <div className="brand-gradient-soft mb-6 rounded-2xl p-4 text-zinc-100">
@@ -129,7 +129,7 @@ export default function LoginPage() {
   return (
     <div className="brand-grid flex min-h-screen items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
-        <div className="brand-surface rounded-[2rem] p-8">
+        <div className="brand-surface rounded-[2rem] p-5 sm:p-8">
           <h1 className="brand-accent-text mb-2 text-center text-4xl font-bold tracking-[0.04em]">Finances</h1>
           <p className="mb-6 text-center text-sm text-zinc-400">Controle financeiro pessoal</p>
 

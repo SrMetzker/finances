@@ -30,7 +30,7 @@ export function BottomSheetModal({
       />
 
       <div
-        className={`absolute inset-x-0 bottom-0 overflow-y-auto rounded-t-3xl shadow-2xl ${panelClassName}`}
+        className={`absolute inset-x-0 bottom-0 overflow-y-auto rounded-t-3xl shadow-2xl lg:inset-x-auto lg:left-1/2 lg:w-full lg:max-w-2xl lg:-translate-x-1/2 ${panelClassName}`}
       >
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/6 bg-[rgba(39,38,37,0.95)] px-5 py-3 backdrop-blur-xl">
           <div>{title}</div>

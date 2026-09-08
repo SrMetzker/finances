@@ -278,7 +278,7 @@ export default function CategoriesPage() {
 
   return (
     <PageShell title="Categorias" onHeaderAdd={openCreateModal}>
-      <div className="mx-4 mt-4">
+      <div className="mx-auto mt-4 max-w-5xl px-4 sm:px-6 lg:mt-8 lg:px-8">
         <div className="brand-panel inline-flex w-full items-center rounded-full border border-white/8 p-1">
           {(['SAIDA', 'ENTRADA'] as const).map((tabType) => (
             <button
@@ -302,7 +302,7 @@ export default function CategoriesPage() {
         </div>
       </div>
 
-      <div className="brand-surface mx-4 mt-4 divide-y divide-white/6 rounded-[1.75rem]">
+      <div className="brand-surface mx-4 mt-4 max-w-5xl divide-y divide-white/6 rounded-[1.75rem] sm:mx-6 lg:mx-auto lg:mt-6">
         {rootCategories.map((cat) => {
           const subcategories = subcategoriesByParent.get(cat.id) ?? [];
 
@@ -477,7 +477,7 @@ export default function CategoriesPage() {
             aria-label="Fechar modal"
           />
 
-          <div className="brand-panel absolute inset-x-0 bottom-0 rounded-t-3xl border border-white/6 p-6 shadow-2xl">
+          <div className="brand-panel absolute inset-x-0 bottom-0 max-h-[92vh] overflow-y-auto rounded-t-3xl border border-white/6 p-6 shadow-2xl lg:inset-x-auto lg:left-1/2 lg:w-full lg:max-w-2xl lg:-translate-x-1/2">
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-lg font-semibold">
                 {isEditing
@@ -583,7 +583,7 @@ export default function CategoriesPage() {
             aria-label="Fechar modal de mover subcategoria"
           />
 
-          <div className="brand-panel absolute inset-x-0 bottom-0 rounded-t-3xl border border-white/6 p-6 shadow-2xl">
+          <div className="brand-panel absolute inset-x-0 bottom-0 max-h-[92vh] overflow-y-auto rounded-t-3xl border border-white/6 p-6 shadow-2xl lg:inset-x-auto lg:left-1/2 lg:w-full lg:max-w-2xl lg:-translate-x-1/2">
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-lg font-semibold">Mover subcategoria</h2>
               <button

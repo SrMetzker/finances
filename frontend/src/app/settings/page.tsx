@@ -48,7 +48,7 @@ export default function SettingsPage() {
 
   return (
     <PageShell title="Configurações" backHref="/more">
-      <div className="mx-4 my-4 space-y-3 pb-6">
+      <div className="mx-4 my-4 max-w-3xl space-y-3 pb-6 sm:mx-6 lg:mx-auto lg:my-8">
         {/* Avatar + nome do usuário */}
         <div className="brand-surface flex items-center gap-3 rounded-[1.75rem] p-4">
           <div className="brand-gradient flex h-14 w-14 items-center justify-center overflow-hidden rounded-full flex-shrink-0">

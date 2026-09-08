@@ -683,7 +683,7 @@ export function TransactionFormModal({
             className="absolute inset-0 bg-black/80"
           />
 
-          <div className="brand-panel absolute inset-x-0 bottom-0 max-h-[80vh] overflow-y-auto rounded-t-3xl border border-white/6">
+          <div className="brand-panel absolute inset-x-0 bottom-0 max-h-[80vh] overflow-y-auto rounded-t-3xl border border-white/6 lg:inset-x-auto lg:left-1/2 lg:w-full lg:max-w-xl lg:-translate-x-1/2">
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/6 bg-[rgba(39,38,37,0.95)] px-5 py-3 backdrop-blur-xl">
               <h3 className="text-lg font-semibold">Selecione uma categoria</h3>
               <button
@@ -743,7 +743,7 @@ export function TransactionFormModal({
             className="absolute inset-0 bg-black/80"
           />
 
-          <div className="brand-panel absolute inset-x-0 bottom-0 max-h-[80vh] overflow-y-auto rounded-t-3xl border border-white/6">
+          <div className="brand-panel absolute inset-x-0 bottom-0 max-h-[80vh] overflow-y-auto rounded-t-3xl border border-white/6 lg:inset-x-auto lg:left-1/2 lg:w-full lg:max-w-xl lg:-translate-x-1/2">
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/6 bg-[rgba(39,38,37,0.95)] px-5 py-3 backdrop-blur-xl">
               <h3 className="text-lg font-semibold">{accountPickerTitle}</h3>
               <button
@@ -805,7 +805,7 @@ export function TransactionFormModal({
             className="absolute inset-0 bg-black/80"
           />
 
-          <div className="rounded-t-3xl border border-white/6 bg-[linear-gradient(180deg,rgba(61,29,29,0.92),rgba(42,23,23,0.96))] px-5 pb-7 pt-5 shadow-2xl absolute inset-x-0 bottom-0">
+          <div className="absolute inset-x-0 bottom-0 rounded-t-3xl border border-white/6 bg-[linear-gradient(180deg,rgba(61,29,29,0.92),rgba(42,23,23,0.96))] px-5 pb-7 pt-5 shadow-2xl lg:inset-x-auto lg:left-1/2 lg:w-full lg:max-w-xl lg:-translate-x-1/2">
             <div className="mb-3 flex items-center justify-between">
               <h4 className="text-lg font-semibold text-zinc-100">Excluir transação</h4>
               <button

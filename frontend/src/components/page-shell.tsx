@@ -157,7 +157,7 @@ export function PageShell({
     <div className="brand-grid flex min-h-screen text-[var(--text)] lg:items-start">
       {!hideBottomNav && <Sidebar onAddTransaction={handleSidebarAddTransaction} />}
 
-      <div className="flex min-h-screen flex-1 flex-col">
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
       {/* top bar */}
       <header className="brand-panel sticky top-0 z-30 flex items-center justify-between border-b border-white/5 px-4 py-3 backdrop-blur-xl lg:px-8 lg:py-5">
         {backHref ? (

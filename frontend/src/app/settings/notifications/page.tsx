@@ -50,7 +50,7 @@ export default function NotificationSettingsPage() {
 
   return (
     <PageShell title="Notificações" backHref="/settings">
-      <div className="mx-4 my-4 pb-6">
+      <div className="mx-4 my-4 max-w-xl pb-6 sm:mx-6 lg:mx-auto lg:my-8">
         {isLoading ? (
           <div className="flex justify-center py-16"><Loader2 className="animate-spin text-lime-300" /></div>
         ) : (

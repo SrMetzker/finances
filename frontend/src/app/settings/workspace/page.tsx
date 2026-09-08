@@ -74,7 +74,7 @@ export default function WorkspaceSettingsPage() {
 
   return (
     <PageShell title="Workspace" backHref="/settings">
-      <div className="mx-4 my-4 pb-6">
+      <div className="mx-4 my-4 max-w-xl pb-6 sm:mx-6 lg:mx-auto lg:my-8">
         <form onSubmit={(event) => { void handleSubmit(event); }} className="space-y-4">
           <div className="brand-surface rounded-[1.75rem] p-4">
             <div className="mb-4 flex items-center gap-2">

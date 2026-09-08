@@ -34,7 +34,7 @@ const MENU_ITEMS = [
 export default function MorePage() {
   return (
     <PageShell title="Mais">
-      <div className="px-4 py-4">
+      <div className="mx-auto max-w-3xl px-4 py-4 sm:px-6 lg:py-8">
         <div className="brand-surface overflow-hidden rounded-[1.75rem]">
           {MENU_ITEMS.map((item, index) => (
             <Link
@@ -44,13 +44,13 @@ export default function MorePage() {
                 index < MENU_ITEMS.length - 1 ? 'border-b border-white/6' : ''
               }`}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex min-w-0 items-center gap-3">
                 <div className="brand-gradient-soft flex h-10 w-10 items-center justify-center rounded-full border border-lime-300/20">
                   <item.icon size={18} className="text-zinc-200" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-semibold text-zinc-100">{item.title}</p>
-                  <p className="text-xs text-zinc-400">{item.description}</p>
+                  <p className="truncate text-xs text-zinc-400">{item.description}</p>
                 </div>
               </div>
               <ChevronRight size={18} className="text-lime-200/70" />

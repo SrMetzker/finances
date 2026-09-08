@@ -4,7 +4,7 @@ import { CreditCard } from 'lucide-react';
 export default function CardsPage() {
   return (
     <PageShell title="Cartões">
-      <div className="brand-surface mx-4 mt-4 flex flex-col items-center rounded-[1.75rem] p-6 py-10 text-center">
+      <div className="brand-surface mx-4 mt-4 flex max-w-3xl flex-col items-center rounded-[1.75rem] p-6 py-10 text-center sm:mx-6 lg:mx-auto lg:mt-8">
         <div className="brand-gradient-soft mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-lime-300/20">
           <CreditCard size={32} className="text-lime-300" />
         </div>

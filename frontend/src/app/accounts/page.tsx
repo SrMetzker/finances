@@ -250,7 +250,7 @@ export default function AccountsPage() {
 
   return (
     <PageShell title="Contas" onHeaderAdd={openCreateModal}>
-      <div className="px-4 py-3">
+      <div className="mx-auto max-w-5xl px-4 py-3 sm:px-6 lg:px-8 lg:py-8">
         <div className="mb-3 flex items-center justify-between px-2">
           <button
             type="button"
@@ -272,7 +272,7 @@ export default function AccountsPage() {
         </div>
 
         <div className="brand-surface rounded-[1.75rem] px-4 py-4">
-          <div className="mb-4 grid grid-cols-2 gap-3 border-b border-white/8 pb-4">
+          <div className="mb-4 grid grid-cols-2 gap-3 border-b border-white/8 pb-4 sm:gap-6">
             <div className="space-y-1">
               <p className="text-xs font-medium text-zinc-300">Saldo atual</p>
               <p className="font-bold text-green-400">{money(totalCurrent)}</p>
@@ -291,7 +291,7 @@ export default function AccountsPage() {
               return (
                 <div key={account.id} className="py-4">
                   <div className="mb-3 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+                    <div className="min-w-0 flex items-center gap-3 sm:gap-4">
                       <div
                         className="flex h-10 w-10 items-center justify-center rounded-full border"
                         style={{
@@ -304,7 +304,7 @@ export default function AccountsPage() {
                           return <AccountIcon size={16} style={{ color: account.color }} />;
                         })()}
                       </div>
-                      <p className="font-medium text-zinc-100">{account.name}</p>
+                      <p className="truncate font-medium text-zinc-100">{account.name}</p>
                     </div>
 
                     <div className="relative">
@@ -341,7 +341,7 @@ export default function AccountsPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 pl-[3rem]">
+                  <div className="grid grid-cols-2 gap-3 pl-[3rem] sm:pl-14">
                     <div>
                       <p className="text-xs text-zinc-200">Saldo atual</p>
                       <p className="text-xs text-zinc-400">Saldo previsto</p>
@@ -366,7 +366,7 @@ export default function AccountsPage() {
             onClick={closeEditModal}
             aria-label="Fechar modal"
           />
-          <div className="brand-panel absolute inset-x-0 bottom-0 rounded-t-3xl border border-white/6 p-6 shadow-2xl">
+          <div className="brand-panel absolute inset-x-0 bottom-0 max-h-[92vh] overflow-y-auto rounded-t-3xl border border-white/6 p-6 shadow-2xl lg:inset-x-auto lg:left-1/2 lg:w-full lg:max-w-2xl lg:-translate-x-1/2">
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-lg font-semibold">Editar conta</h2>
               <button type="button" onClick={closeEditModal} className="text-zinc-400" aria-label="Fechar">
@@ -452,7 +452,7 @@ export default function AccountsPage() {
             onClick={closeCreateModal}
             aria-label="Fechar modal"
           />
-          <div className="brand-panel absolute inset-x-0 bottom-0 rounded-t-3xl border border-white/6 p-6 shadow-2xl">
+          <div className="brand-panel absolute inset-x-0 bottom-0 max-h-[92vh] overflow-y-auto rounded-t-3xl border border-white/6 p-6 shadow-2xl lg:inset-x-auto lg:left-1/2 lg:w-full lg:max-w-2xl lg:-translate-x-1/2">
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-lg font-semibold">Nova conta</h2>
               <button type="button" onClick={closeCreateModal} className="text-zinc-400" aria-label="Fechar">

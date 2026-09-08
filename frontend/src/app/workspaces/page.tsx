@@ -82,7 +82,7 @@ export default function WorkspacesPage() {
 
   return (
     <PageShell title="Workspaces" onHeaderAdd={openCreateModal}>
-      <div className="px-4 py-4">
+      <div className="mx-auto max-w-3xl px-4 py-4 sm:px-6 lg:py-8">
         <div className="brand-surface overflow-hidden rounded-[1.75rem]">
           {workspaces.map((workspace, index) => (
             <div
@@ -94,10 +94,10 @@ export default function WorkspacesPage() {
               <button
                 type="button"
                 onClick={() => setWorkspaceId(workspace.id)}
-                className="flex-1 text-left"
+                className="min-w-0 flex-1 text-left"
                 aria-label={`Selecionar workspace ${workspace.name}`}
               >
-                <p className="text-sm font-semibold text-zinc-100">{workspace.name}</p>
+                <p className="truncate text-sm font-semibold text-zinc-100">{workspace.name}</p>
                 <p className="text-xs text-zinc-400/90">
                   {workspace.id === workspaceId ? 'Workspace ativo' : 'Toque para ativar'}
                 </p>
@@ -131,7 +131,7 @@ export default function WorkspacesPage() {
             className="absolute inset-0 bg-black/82"
           />
 
-          <div className="brand-panel absolute inset-x-0 bottom-0 rounded-t-3xl border border-white/6 px-5 pb-7 pt-5 shadow-2xl">
+          <div className="brand-panel absolute inset-x-0 bottom-0 max-h-[92vh] overflow-y-auto rounded-t-3xl border border-white/6 px-5 pb-7 pt-5 shadow-2xl lg:inset-x-auto lg:left-1/2 lg:w-full lg:max-w-xl lg:-translate-x-1/2">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="brand-accent-text text-base font-semibold">{modalTitle}</h3>
               <button
