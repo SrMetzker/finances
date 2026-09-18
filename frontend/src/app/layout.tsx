@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { AuthGate } from '@/components/auth-gate';
+import { PwaRegister } from '@/components/pwa-register';
 import { AuthProvider } from '@/services/auth.context';
 import { Toaster } from 'sonner';
 import './globals.css';
@@ -8,6 +9,10 @@ export const metadata: Metadata = {
   title: 'Finances – Controle Financeiro',
   description: 'App de controle financeiro pessoal estilo Mobills',
   manifest: '/manifest.webmanifest',
+  icons: {
+    icon: '/icon.svg',
+    apple: '/icon-192.png',
+  },
   appleWebApp: {
     capable: true,
     title: 'Finances',
@@ -21,6 +26,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className="h-full">
       <body className="min-h-full antialiased">
+        <PwaRegister />
         <AuthProvider>
           <AuthGate>{children}</AuthGate>
           <Toaster

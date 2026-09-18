@@ -1,9 +1,20 @@
-const CACHE_NAME = 'finances-shell-v1';
-const APP_SHELL = ['/manifest.webmanifest', '/icon.svg'];
+const CACHE_NAME = 'finances-shell-v2';
+const APP_SHELL = [
+  '/dashboard',
+  '/manifest.webmanifest',
+  '/icon.svg',
+  '/icon-192.png',
+  '/icon-512.png',
+];
+const STATIC_DESTINATIONS = new Set(['style', 'script', 'image', 'font', 'manifest']);
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
-  self.skipWaiting();
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    // One unavailable route must not make the worker fail to install.
+    await Promise.allSettled(APP_SHELL.map((asset) => cache.add(asset)));
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', (event) => {
@@ -17,7 +28,31 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET' || !event.request.url.startsWith(self.location.origin)) return;
-  event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
+
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(async () => (
+        await caches.match('/dashboard')
+        ?? await caches.match('/')
+        ?? Response.error()
+      )),
+    );
+    return;
+  }
+
+  if (!STATIC_DESTINATIONS.has(event.request.destination)) return;
+
+  event.respondWith((async () => {
+    const cached = await caches.match(event.request);
+    if (cached) return cached;
+
+    const response = await fetch(event.request);
+    if (response.ok) {
+      const cache = await caches.open(CACHE_NAME);
+      await cache.put(event.request, response.clone());
+    }
+    return response;
+  })());
 });
 
 self.addEventListener('push', (event) => {
