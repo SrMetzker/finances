@@ -17,6 +17,7 @@ import { UsersModule } from './modules/users/users.module';
 import { WorkspacesModule } from './modules/workspaces/workspaces.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     ReportsModule,
     NotificationsModule,
   ],
+  controllers: [HealthController],
   providers: [WorkspaceAccessGuard],
 })
 export class AppModule implements NestModule {
