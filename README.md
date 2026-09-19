@@ -1,4 +1,4 @@
-# 💰 Finances
+# 💰 Zenfin
 
 App de controle financeiro pessoal multi-tenant, estilo Mobills — construído com NestJS, Prisma e Next.js.
 

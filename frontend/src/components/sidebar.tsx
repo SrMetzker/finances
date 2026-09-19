@@ -41,7 +41,7 @@ export function Sidebar({ onAddTransaction }: { onAddTransaction?: () => void })
   return (
     <aside className="brand-panel sticky top-0 hidden h-screen w-64 flex-col border-r border-white/5 px-4 py-6 lg:flex">
       <Link href="/dashboard" className="flex items-center justify-center gap-2 px-2">
-        <span className="brand-accent-text text-3xl font-bold tracking-tight">Finances</span>
+        <span className="brand-accent-text text-3xl font-bold tracking-tight">Zenfin</span>
       </Link>
 
       <button

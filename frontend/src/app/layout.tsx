@@ -6,7 +6,7 @@ import { Toaster } from 'sonner';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Finances – Controle Financeiro',
+  title: 'Zenfin – Controle Financeiro',
   description: 'App de controle financeiro pessoal estilo Mobills',
   manifest: '/manifest.webmanifest',
   icons: {
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: 'Finances',
+    title: 'Zenfin',
     statusBarStyle: 'black-translucent',
   },
 };
