@@ -1,6 +1,6 @@
 {
-  "name": "Finances - Controle Financeiro",
-  "short_name": "Finances",
+  "name": "Zenfin - Controle Financeiro",
+  "short_name": "Zenfin",
   "description": "Controle financeiro pessoal",
   "id": "/",
   "start_url": "/dashboard",

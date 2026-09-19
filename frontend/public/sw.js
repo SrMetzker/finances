@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finances-shell-v2';
+const CACHE_NAME = 'zenfin-shell-v3';
 const APP_SHELL = [
   '/dashboard',
   '/manifest.webmanifest',
@@ -56,7 +56,7 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-  let data = { title: 'Finances', body: 'Você tem uma nova notificação.', href: '/dashboard' };
+  let data = { title: 'Zenfin', body: 'Você tem uma nova notificação.', href: '/dashboard' };
   try {
     if (event.data) data = { ...data, ...event.data.json() };
   } catch {
